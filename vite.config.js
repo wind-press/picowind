@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import tailwindcss from "@tailwindcss/vite";
+import FullReload from 'vite-plugin-full-reload'
 
 const dest = './theme/assets/dist'
 const entries = [
@@ -18,11 +19,25 @@ export default defineConfig(({ mode }) => {
     server: {
       cors: true,
       strictPort: true,
-      port: 3000,
+      port: 3001,
       https: false,
-      hmr: {
-        host: 'localhost',
-      }
+      hmr: { host: 'localhost', port: 3001 },
+      watch: {
+        // no polling
+        awaitWriteFinish: {
+          stabilityThreshold: 250,
+          pollInterval: 100,
+        },
+        ignored: [
+          '**/.git/**',
+          '**/.DS_Store',
+          '**/*.swp',
+          '**/*.tmp',
+          '**/.idea/**',
+          '**/.vscode/**',
+          'theme/assets/dist/**', // don't watch build output
+        ],
+      },
     },
     build: {
       outDir: dest,
@@ -37,6 +52,14 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       tailwindcss(),
+      FullReload(
+        [
+          './theme/**/*.php',
+          './theme/views/**/*.twig',
+          './theme/blocks/**/*.twig',
+          './theme/components/**/*.twig',
+        ]
+      ),
     ],
   }
 })

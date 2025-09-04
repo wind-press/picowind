@@ -1,12 +1,6 @@
-import typography from '@tailwindcss/typography'
-
 export default {
-  content: [
-    './theme/views/**/*.twig',
-    './theme/blocks/**/*.twig',
+  safelist: [
+    'btn-primary',
+    'btn-secondary'
   ],
-  theme: { extend: {} },
-  plugins: [
-    typography,
-  ],
-}
+};
