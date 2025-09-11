@@ -1,8 +1,8 @@
 <?php
 /**
  * @package WordPress
- * @subpackage Timberland
- * @since Timberland 2.2.0
+ * @subpackage Timberkit
+ * @since Timberkit 1.0.0
  */
 
 require_once dirname( __DIR__ ) . '/vendor/autoload.php';
@@ -11,7 +11,7 @@ Timber\Timber::init();
 Timber::$dirname    = array( 'views', 'blocks' );
 Timber::$autoescape = false;
 
-class Timberland extends Timber\Site {
+class Timberkit extends Timber\Site {
 	public function __construct() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'after_setup_theme', array( $this, 'theme_supports' ) );
@@ -178,7 +178,7 @@ class Timberland extends Timber\Site {
 	}
 }
 
-new Timberland();
+new Timberkit();
 
 function acf_block_render_callback( $block, $content = '', $is_preview = false, $post_id = 0 ) {
   $context = Timber::context();

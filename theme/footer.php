@@ -7,8 +7,8 @@
  * WooCommerce) you can delete this file and header.php
  *
  * @package WordPress
- * @subpackage Timberland
- * @since Timberland 2.2.0
+ * @subpackage Timberkit
+ * @since Timberkit 1.0.0
  */
 
 $timberContext = $GLOBALS['timberContext']; // @codingStandardsIgnoreFile

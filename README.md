@@ -1,8 +1,8 @@
-# Timberland :evergreen_tree:
+# Timberkit :evergreen_tree:
 
-Timberland is an opinionated WordPress theme using [Timber](https://www.upstatement.com/timber/), [Advanced Custom Fields Pro](https://www.advancedcustomfields.com/), [Vite](https://vitejs.dev/), [Tailwind](https://tailwindcss.com/) and [Alpine.js](https://github.com/alpinejs/alpine).
+Timberkit is an opinionated WordPress theme using [Timber](https://www.upstatement.com/timber/), [Advanced Custom Fields Pro](https://www.advancedcustomfields.com/), [Vite](https://vitejs.dev/), [Tailwind](https://tailwindcss.com/) and [Alpine.js](https://github.com/alpinejs/alpine).
 
-As of version 1.0, Timberland now uses the WordPress block editor to visually edit the site. This is made possible by the [ACF Blocks feature](https://www.advancedcustomfields.com/resources/blocks/).
+As of version 1.0, Timberkit now uses the WordPress block editor to visually edit the site. This is made possible by the [ACF Blocks feature](https://www.advancedcustomfields.com/resources/blocks/).
 
 ## Installation
 
@@ -14,7 +14,7 @@ As of version 1.0, Timberland now uses the WordPress block editor to visually ed
 
 ## Development
 
-Timberland builds your css and js files using Vite. This allows you to use the latest Javascript and CSS features.
+Timberkit builds your css and js files using Vite. This allows you to use the latest Javascript and CSS features.
 
 To get started:
 1. Run `npm run build` to generate assets that can be used in the admin block editor. This only needs to be run as often as you want to see updated block previews in the admin.
