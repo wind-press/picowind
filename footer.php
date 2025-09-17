@@ -7,8 +7,8 @@
  * WooCommerce) you can delete this file and header.php
  *
  * @package WordPress
- * @subpackage Timberkit
- * @since Timberkit 1.0.0
+ * @subpackage Picowind
+ * @since Picowind 1.0.0
  */
 
 $timberContext = $GLOBALS['timberContext']; // @codingStandardsIgnoreFile
@@ -17,5 +17,5 @@ if ( ! isset( $timberContext ) ) {
 }
 $timberContext['content'] = ob_get_contents();
 ob_end_clean();
-$templates = array( 'page-plugin.twig' );
+$templates = [ 'page-plugin.twig' ];
 Timber::render( $templates, $timberContext );

@@ -15,7 +15,7 @@
   },
   "acf": {
     "mode": "preview",
-    "renderCallback": "acf_block_render_callback"
+    "renderCallback": "Picowind\\acf_block_render_callback"
   },
   "example": {
     "attributes": {

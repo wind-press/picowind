@@ -9,12 +9,14 @@
  * Methods for TimberHelper can be found in the /lib sub-directory
  *
  * @package WordPress
- * @subpackage Timberkit
- * @since Timberkit 1.0.0
+ * @subpackage Picowind
+ * @since Picowind 1.0.0
  */
 
+use Timber\Timber;
+
 $context   = Timber::context();
-$templates = array( 'index.twig' );
+$templates = [ 'index.twig' ];
 if ( is_home() ) {
 	array_unshift( $templates, 'front-page.twig', 'home.twig' );
 }

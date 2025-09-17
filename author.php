@@ -1,8 +1,8 @@
 <?php
 /**
  * @package WordPress
- * @subpackage Timberkit
- * @since Timberkit 1.0.0
+ * @subpackage Picowind
+ * @since Picowind 1.0.0
  */
 
 global $wp_query;
@@ -14,4 +14,4 @@ if ( isset( $wp_query->query_vars['author'] ) ) {
 	$context['author'] = $author;
 	$context['title']  = 'Author Archives: ' . $author->name();
 }
-Timber::render( array( 'author.twig', 'archive.twig' ), $context );
+Timber::render( [ 'author.twig', 'archive.twig' ], $context );

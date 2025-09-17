@@ -1,8 +1,8 @@
 <?php
 /**
  * @package WordPress
- * @subpackage Timberkit
- * @since Timberkit 1.0.0
+ * @subpackage Picowind
+ * @since Picowind 1.0.0
  */
 
 $context = Timber::context();
