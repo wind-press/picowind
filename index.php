@@ -13,11 +13,13 @@
  * @since Picowind 1.0.0
  */
 
+namespace Picowind;
+
 use Timber\Timber;
 
-$context   = Timber::context();
-$templates = [ 'index.twig' ];
-if ( is_home() ) {
-	array_unshift( $templates, 'front-page.twig', 'home.twig' );
+$context = Timber::context();
+$templates = ['index.twig'];
+if (is_home()) {
+    array_unshift($templates, 'front-page.twig', 'home.twig');
 }
-Timber::render( $templates, $context );
+Timber::render($templates, $context);

@@ -30,13 +30,16 @@ class WindPress
             'name' => 'picowind Theme',
             'description' => 'Scans the picowind theme & child theme',
             'callback' => [$this, 'provider_callback'],
-            'enabled' => Config::get(sprintf(
-                'integration.%s.enabled',
-                'picowind' // The id of this custom provider
-            ), true),
+            'enabled' => Config::get(
+                sprintf(
+                    'integration.%s.enabled',
+                    'picowind', // The id of this custom provider
+                ),
+                true,
+            ),
             'type' => 'theme',
             'homepage' => 'https://picostrap.com/?ref=windpress',
-            'is_installed_active' => static fn() => 1,
+            'is_installed_active' => static fn () => 1,
         ];
 
         return $providers;
@@ -70,9 +73,11 @@ class WindPress
         $has_parent = (bool) $wpTheme->parent();
         $parentThemeDir = $wpTheme->parent()->get_stylesheet_directory() ?? null;
 
-        $finder->files()->notPath([
-            $has_parent ? $parentThemeDir . '/vendor' : $themeDir . '/vendor',
-        ]);
+        $finder
+            ->files()
+            ->notPath([
+                $has_parent ? $parentThemeDir . '/vendor' : $themeDir . '/vendor',
+            ]);
 
         // Scan the theme directory according to the file extensions
         foreach ($file_extensions as $file_extension) {

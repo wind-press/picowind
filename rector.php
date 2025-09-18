@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
 use Rector\Php73\Rector\String_\SensitiveHereNowDocRector;
+use Rector\Set\ValueObject\DowngradeLevelSetList;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
-use Rector\Set\ValueObject\DowngradeLevelSetList;
 
 return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->paths([
@@ -18,7 +18,6 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->skip([
         SensitiveHereNowDocRector::class,
     ]);
-
 
     // define sets of rules
     $rectorConfig->sets([

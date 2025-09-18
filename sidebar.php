@@ -5,4 +5,8 @@
  * @since Picowind 1.0.0
  */
 
-Timber::render( ['sidebar.twig'], $data );
+namespace Picowind;
+
+use Timber\Timber;
+
+Timber::render(['sidebar.twig'], $data);

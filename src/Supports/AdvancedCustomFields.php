@@ -17,53 +17,54 @@ class AdvancedCustomFields
 {
     public function __construct()
     {
-		add_action('acf/init', [$this, 'acf_register_blocks']);
-		// add_action('acf/init', [$this, 'register_options_pages']);
+        add_action('acf/init', [$this, 'acf_register_blocks']);
+
+        // add_action('acf/init', [$this, 'register_options_pages']);
     }
 
-	public function acf_register_blocks()
-	{
-		$blocks = [];
+    public function acf_register_blocks(): void
+    {
+        $blocks = [];
 
-		foreach (new DirectoryIterator(get_template_directory() . '/blocks') as $dir) {
-			if ($dir->isDot()) {
-				continue;
-			}
+        foreach (new DirectoryIterator(get_template_directory() . '/blocks') as $dir) {
+            if ($dir->isDot()) {
+                continue;
+            }
 
-			if (file_exists($dir->getPathname() . '/block.json')) {
-				$blocks[] = $dir->getPathname();
-			}
-		}
+            if (file_exists($dir->getPathname() . '/block.json')) {
+                $blocks[] = $dir->getPathname();
+            }
+        }
 
-		asort($blocks);
+        asort($blocks);
 
-		foreach ($blocks as $block) {
-			register_block_type($block);
-		}
-	}
+        foreach ($blocks as $block) {
+            register_block_type($block);
+        }
+    }
 
-	public function register_options_pages()
-	{
-		if (function_exists('acf_add_options_page')) {
-			acf_add_options_page([
-				'page_title' => 'Theme Settings',
-				'menu_title' => 'Theme Settings',
-				'menu_slug'  => 'theme-settings',
-				'capability' => 'manage_options',
-				'redirect'   => false,
-				'icon_url' 	 => 'dashicons-admin-generic',
-			]);
+    public function register_options_pages(): void
+    {
+        if (function_exists('acf_add_options_page')) {
+            acf_add_options_page([
+                'page_title' => 'Theme Settings',
+                'menu_title' => 'Theme Settings',
+                'menu_slug' => 'theme-settings',
+                'capability' => 'manage_options',
+                'redirect' => false,
+                'icon_url' => 'dashicons-admin-generic',
+            ]);
 
-			acf_add_options_sub_page([
-				'page_title'  => 'Header',
-				'menu_title'  => 'Header',
-				'parent_slug' => 'theme-settings',
-			]);
-			acf_add_options_sub_page([
-				'page_title'  => 'Footer',
-				'menu_title'  => 'Footer',
-				'parent_slug' => 'theme-settings',
-			]);
-		}
-	}
+            acf_add_options_sub_page([
+                'page_title' => 'Header',
+                'menu_title' => 'Header',
+                'parent_slug' => 'theme-settings',
+            ]);
+            acf_add_options_sub_page([
+                'page_title' => 'Footer',
+                'menu_title' => 'Footer',
+                'parent_slug' => 'theme-settings',
+            ]);
+        }
+    }
 }

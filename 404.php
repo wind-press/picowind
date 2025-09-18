@@ -5,5 +5,9 @@
  * @since Picowind 1.0.0
  */
 
+namespace Picowind;
+
+use Timber\Timber;
+
 $context = Timber::context();
-Timber::render( '404.twig', $context );
+Timber::render('404.twig', $context);

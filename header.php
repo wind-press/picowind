@@ -11,5 +11,10 @@
  * @since Picowind 1.0.0
  */
 
+namespace Picowind;
+
+use Timber\Timber;
+
+// @mago-expect lint:no-global
 $GLOBALS['timberContext'] = Timber::context();
 ob_start();
