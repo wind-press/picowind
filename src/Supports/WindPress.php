@@ -64,29 +64,34 @@ class WindPress
             return $contents;
         }
 
-        $wpTheme = wp_get_theme();
-        $themeDir = $wpTheme->get_stylesheet_directory();
-
         $finder = get_symfony_finder();
         if (! $finder) {
             return $contents;
         }
 
+        $wpTheme = wp_get_theme();
+        $themeDir = $wpTheme->get_stylesheet_directory();
+
         // Check if the current theme is a child theme and get the parent theme directory
         $has_parent = (bool) $wpTheme->parent();
-        $parentThemeDir = $wpTheme->parent()->get_stylesheet_directory() ?? null;
 
-        $finder
-            ->files()
-            ->notPath([
-                $has_parent ? $parentThemeDir . '/vendor' : $themeDir . '/vendor',
-            ]);
+        if ($has_parent) {
+            $parentThemeDir = $wpTheme->parent()->get_stylesheet_directory() ?? null;
+        }
 
         // Scan the theme directory according to the file extensions
         foreach ($file_extensions as $file_extension) {
-            $finder->files()->in($themeDir)->name('*.' . $file_extension);
-            if ($has_parent) {
-                $finder->files()->in($parentThemeDir)->name('*.' . $file_extension);
+            $finder
+                ->files()
+                ->in($themeDir)
+                ->notPath('vendor')
+                ->name('*.' . $file_extension);
+            if ($has_parent && $parentThemeDir) {
+                $finder
+                    ->files()
+                    ->in($parentThemeDir)
+                    ->notPath('vendor')
+                    ->name('*.' . $file_extension);
             }
         }
 
