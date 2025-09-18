@@ -65,7 +65,7 @@ class WindPress
         $themeDir = $wpTheme->get_stylesheet_directory();
 
         $finder = get_symfony_finder();
-        if (!$finder instanceof \Symfony\Component\Finder\Finder) {
+        if (! $finder) {
             return $contents;
         }
 
@@ -109,7 +109,7 @@ class WindPress
         }
 
         $finder = get_symfony_finder();
-        if (!$finder instanceof \Symfony\Component\Finder\Finder) {
+        if (! $finder) {
             return $entries;
         }
 
@@ -158,7 +158,7 @@ class WindPress
 
         try {
             // if the content is empty, delete the file.
-            if (!isset($entry['content']) || $entry['content'] === '') {
+            if (! isset($entry['content']) || $entry['content'] === '') {
                 Common::delete_file($data_dir . $_relativePath);
             } else {
                 Common::save_file($entry['content'], $data_dir . $_relativePath);
