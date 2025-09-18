@@ -20,7 +20,10 @@ class WindPress
     {
         add_filter('f!windpress/core/cache:compile.providers', [$this, 'compile_providers']);
         add_filter('f!windpress/core/volume:get_entries.entries', [$this, 'sfs_handler_get']);
-        add_action('a!windpress/core/volume:save_entries.entry.picowind', [$this, 'sfs_handler_save']);
+        add_action('a!windpress/core/volume:save_entries.entry.picowind-root', [$this, 'sfs_handler_save']);
+        add_action('a!windpress/core/volume:save_entries.entry.picowind-views', [$this, 'sfs_handler_save']);
+        add_action('a!windpress/core/volume:save_entries.entry.picowind-blocks', [$this, 'sfs_handler_save']);
+        add_action('a!windpress/core/volume:save_entries.entry.picowind-components', [$this, 'sfs_handler_save']);
     }
 
     public function compile_providers(array $providers): array
@@ -102,20 +105,29 @@ class WindPress
     {
         $entries = [];
 
-        $data_dir = get_template_directory() . '/assets/styles';
-
-        if (! file_exists($data_dir)) {
-            return $entries;
-        }
+        $template_dir = get_template_directory();
+        $directories = ['assets/styles', 'views', 'blocks', 'components'];
 
         $finder = get_symfony_finder();
         if (! $finder) {
             return $entries;
         }
 
+        $existing_dirs = [];
+        foreach ($directories as $dir) {
+            $full_path = $template_dir . '/' . $dir;
+            if (file_exists($full_path)) {
+                $existing_dirs[] = $full_path;
+            }
+        }
+
+        if (empty($existing_dirs)) {
+            return $entries;
+        }
+
         $finder
             ->ignoreUnreadableDirs()
-            ->in($data_dir)
+            ->in($existing_dirs)
             ->files()
             ->followLinks()
             ->name(['*.css', '*.js']);
@@ -127,12 +139,33 @@ class WindPress
                 continue;
             }
 
+            // Detect directory based on file path
+            $file_path = $file->getPathname();
+            $relative_from_template = str_replace($template_dir . '/', '', $file_path);
+
+            // Determine handler and relative_path based on directory
+            if (strpos($relative_from_template, 'assets/styles/') === 0) {
+                $handler = 'picowind-root';
+                $relative_path = '@picowind/' . $file->getRelativePathname();
+            } elseif (strpos($relative_from_template, 'views/') === 0) {
+                $handler = 'picowind-views';
+                $relative_path = '@picowind-views/' . $file->getRelativePathname();
+            } elseif (strpos($relative_from_template, 'blocks/') === 0) {
+                $handler = 'picowind-blocks';
+                $relative_path = '@picowind-blocks/' . $file->getRelativePathname();
+            } elseif (strpos($relative_from_template, 'components/') === 0) {
+                $handler = 'picowind-components';
+                $relative_path = '@picowind-components/' . $file->getRelativePathname();
+            } else {
+                continue; // Skip files not in supported directories
+            }
+
             $entries[] = [
                 'name' => $file->getFilename(),
-                'relative_path' => '@picowind/' . $file->getRelativePathname(),
+                'relative_path' => $relative_path,
                 'content' => $file->getContents(),
-                'handler' => 'picowind',
-                'signature' => wp_create_nonce(sprintf('%s:%s', 'picowind', $file->getRelativePathname())),
+                'handler' => $handler,
+                'signature' => wp_create_nonce(sprintf('%s:%s', $handler, $file->getRelativePathname())),
                 // 'readonly' => true,
                 'path_on_disk' => $file->getPathname(),
             ];
@@ -143,25 +176,41 @@ class WindPress
 
     public function sfs_handler_save(array $entry): void
     {
-        $data_dir = get_template_directory() . '/assets/styles';
-
-        if (! isset($entry['signature'])) {
+        if (! isset($entry['signature']) || ! isset($entry['handler'])) {
             return;
         }
 
-        $_relativePath = substr($entry['relative_path'], strlen('@picowind/'));
+        $template_dir = get_template_directory();
+        $handler = $entry['handler'];
+
+        // Determine directory and relative path based on handler
+        if ($handler === 'picowind-root') {
+            $data_dir = $template_dir . '/assets/styles';
+            $_relativePath = substr($entry['relative_path'], strlen('@picowind/'));
+        } elseif ($handler === 'picowind-views') {
+            $data_dir = $template_dir . '/views';
+            $_relativePath = substr($entry['relative_path'], strlen('@picowind-views/'));
+        } elseif ($handler === 'picowind-blocks') {
+            $data_dir = $template_dir . '/blocks';
+            $_relativePath = substr($entry['relative_path'], strlen('@picowind-blocks/'));
+        } elseif ($handler === 'picowind-components') {
+            $data_dir = $template_dir . '/components';
+            $_relativePath = substr($entry['relative_path'], strlen('@picowind-components/'));
+        } else {
+            return; // Unknown handler
+        }
 
         // verify the signature
-        if (! wp_verify_nonce($entry['signature'], sprintf('%s:%s', 'picowind', $_relativePath))) {
+        if (! wp_verify_nonce($entry['signature'], sprintf('%s:%s', $handler, $_relativePath))) {
             return;
         }
 
         try {
             // if the content is empty, delete the file.
             if (! isset($entry['content']) || $entry['content'] === '') {
-                Common::delete_file($data_dir . $_relativePath);
+                Common::delete_file($data_dir . '/' . $_relativePath);
             } else {
-                Common::save_file($entry['content'], $data_dir . $_relativePath);
+                Common::save_file($entry['content'], $data_dir . '/' . $_relativePath);
             }
         } catch (Throwable $throwable) {
             if (WP_DEBUG_LOG) {
