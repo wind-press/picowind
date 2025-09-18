@@ -12,17 +12,11 @@ paths = [
     "footer.php",
     "sidebar.php",
     "single.php",
-    "comments.php",
     "page.php",
     "search.php",
-    "home.php",
 ]
 includes = ["vendor"]
 excludes = [
-	"./vendor/symfony/cache/Traits/ValueWrapper.php",
-	"./vendor/google/common-protos/metadata",
-	"./vendor/google/gax/metadata",
-	"./vendor/google/longrunning/metadata",
 	"./vendor/composer",
 	"**/.cache",
 	"**/*.stub.php",
@@ -47,7 +41,7 @@ preserve-breaking-conditional-expression = true
 empty-line-after-opening-tag = false
 
 [linter]
-integrations = ["php-unit", "tempest"]
+integrations = ["wordpress"]
 
 [linter.rules]
 interface-name = { psr = false }

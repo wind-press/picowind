@@ -45,27 +45,26 @@ class Timber
         return $context;
     }
 
-    public function add_to_twig(Environment $twig): Environment
+    public function add_to_twig(Environment $twigEnvironment): Environment
     {
-        return $twig;
+        return $twigEnvironment;
     }
 
-    public function add_inline_svg_to_twig(Environment $twig): Environment
+    public function add_inline_svg_to_twig(Environment $twigEnvironment): Environment
     {
-        $twig->addFunction(new TwigFunction('inline_svg', [$this, 'inline_svg'], ['is_safe' => ['html']]));
-        return $twig;
+        $twigEnvironment->addFunction(new TwigFunction('inline_svg', [$this, 'inline_svg'], ['is_safe' => ['html']]));
+        return $twigEnvironment;
     }
 
     /**
      * Sanitize + inline an SVG attachment, let Twig print SVG as HTML.
+     *
+     * @param mixed $attachment Attachment ID, array with ID key, or full path to SVG file.
+     * @mago-expect lint:parameter-type
      */
     public function inline_svg($attachment, array $opts = []): string
     {
-        if (is_array($attachment)) {
-            $id = $attachment['ID'] ?? null;
-        } else {
-            $id = (int) $attachment;
-        }
+        $id = is_array($attachment) ? $attachment['ID'] ?? null : (int) $attachment;
 
         if ($id) {
             $path = get_attached_file($id);
@@ -87,17 +86,17 @@ class Timber
         $svg = preg_replace('#<(script|foreignObject)\b[^>]*>.*?</\1>#is', '', $svg);
 
         // force monochrome if requested (replace fills/strokes with currentColor)
-        if (! empty($opts['monochrome'])) {
+        if (isset($opts['monochrome']) && $opts['monochrome']) {
             $svg = preg_replace('/\sfill="(?!none)[^"]*"/i', ' fill="currentColor"', $svg);
             $svg = preg_replace('/\sstroke="(?!none)[^"]*"/i', ' stroke="currentColor"', $svg);
         }
 
         // add class/title on root <svg>
-        if (! empty($opts['class'])) {
+        if (isset($opts['class']) && $opts['class'] !== '') {
             $svg = preg_replace('/<svg\b/i', '<svg class="' . esc_attr($opts['class']) . '"', $svg, 1);
         }
 
-        if (! empty($opts['title'])) {
+        if (isset($opts['title']) && $opts['title'] !== '') {
             $svg = preg_replace('/<svg\b/i', '<svg role="img" aria-label="' . esc_attr($opts['title']) . '"', $svg, 1);
         }
 

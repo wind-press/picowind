@@ -96,7 +96,7 @@ class Theme extends Site
         }
 
         if ($vite_env === 'development') {
-            function vite_head_module_hook()
+            function vite_head_module_hook(): void
             {
                 echo '<script type="module" crossorigin src="http://localhost:3001/@vite/client"></script>';
                 echo '<script type="module" crossorigin src="http://localhost:3001/theme/assets/main.js"></script>';

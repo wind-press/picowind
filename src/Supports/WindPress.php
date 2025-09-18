@@ -45,7 +45,7 @@ class WindPress
         return $providers;
     }
 
-    public function provider_callback()
+    public function provider_callback(): array
     {
         // Any files with this extension will be scanned
         $file_extensions = [
@@ -57,7 +57,7 @@ class WindPress
         $contents = [];
 
         // if the theme is not picowind or its' child, early return
-        if (get_template() != 'picowind') {
+        if (get_template() !== 'picowind') {
             return $contents;
         }
 
@@ -65,7 +65,7 @@ class WindPress
         $themeDir = $wpTheme->get_stylesheet_directory();
 
         $finder = get_symfony_finder();
-        if (! $finder) {
+        if (!$finder instanceof \Symfony\Component\Finder\Finder) {
             return $contents;
         }
 
@@ -109,7 +109,7 @@ class WindPress
         }
 
         $finder = get_symfony_finder();
-        if (! $finder) {
+        if (!$finder instanceof \Symfony\Component\Finder\Finder) {
             return $entries;
         }
 
@@ -158,7 +158,7 @@ class WindPress
 
         try {
             // if the content is empty, delete the file.
-            if (empty($entry['content'])) {
+            if (!isset($entry['content']) || $entry['content'] === '') {
                 Common::delete_file($data_dir . $_relativePath);
             } else {
                 Common::save_file($entry['content'], $data_dir . $_relativePath);
