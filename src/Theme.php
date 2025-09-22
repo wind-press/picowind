@@ -8,7 +8,9 @@
 
 namespace Picowind;
 
+use Picowind\Core\Blocks;
 use Picowind\Supports\AdvancedCustomFields as SupportAdvancedCustomFields;
+use Picowind\Supports\Blockstudio as SupportBlockstudio;
 use Picowind\Supports\LiveCanvas as SupportLiveCanvas;
 use Picowind\Supports\Timber as SupportsTimber;
 use Picowind\Supports\WindPress as SupportsWindPress;
@@ -22,10 +24,14 @@ class Theme extends Site
         add_action('after_setup_theme', [$this, 'theme_supports']);
         add_action('block_categories_all', [$this, 'block_categories_all']);
         // add_action('enqueue_block_editor_assets', [$this, 'enqueue_assets']);
-        new SupportsTimber($this);
+        SupportsTimber::init($this);
         new SupportAdvancedCustomFields();
         new SupportsWindPress();
         new SupportLiveCanvas();
+        new SupportBlockstudio();
+
+        // new Blocks();
+        Blocks::get_instance();
 
         parent::__construct();
     }

@@ -12,9 +12,6 @@ use Timber\Timber;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-Timber::init();
-Timber::$dirname = ['views', 'blocks'];
-
 new Theme();
 
 if (! function_exists('lc_theme_is_livecanvas_friendly')) {

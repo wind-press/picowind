@@ -8,6 +8,8 @@
 
 namespace Picowind\Supports;
 
+use Exception;
+use Picowind\Core\Render\Twig;
 use Timber\Site;
 use Timber\Timber as TimberTimber;
 use Twig\Environment;
@@ -19,13 +21,60 @@ class Timber
 {
     private Site $site;
 
-    public function __construct(Site $site)
-    {
-        $this->site = $site;
+    /**
+     * Stores the instance, implementing a Singleton pattern.
+     */
+    private static self $instance;
 
+    /**
+     * Singletons should not be cloneable.
+     */
+    private function __clone()
+    {
+    }
+
+    /**
+     * Singletons should not be restorable from strings.
+     *
+     * @throws Exception Cannot unserialize a singleton.
+     */
+    public function __wakeup()
+    {
+        throw new Exception('Cannot unserialize a singleton.');
+    }
+
+    /**
+     * This is the static method that controls the access to the singleton
+     * instance. On the first run, it creates a singleton object and places it
+     * into the static property. On subsequent runs, it returns the client existing
+     * object stored in the static property.
+     */
+    public static function get_instance(): self
+    {
+        if (! isset(self::$instance)) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * The Singleton's constructor should always be private to prevent direct
+     * construction calls with the `new` operator.
+     */
+    private function __construct()
+    {
+        Twig::get_instance();
         add_filter('timber/context', [$this, 'add_to_context']);
         add_filter('timber/twig', [$this, 'add_to_twig']);
         add_filter('timber/twig', [$this, 'add_inline_svg_to_twig']);
+
+        TimberTimber::init();
+    }
+
+    public static function init(Site $site)
+    {
+        self::get_instance()->site = $site;
     }
 
     public function add_to_context(array $context): array

@@ -8,23 +8,6 @@
 
 namespace Picowind;
 
-use Timber\Timber;
-
-function acf_block_render_callback(array $block, string $content = '', bool $is_preview = false, int $post_id = 0): void
-{
-    $context = Timber::context();
-    $context['post'] = Timber::get_post();
-    $context['block'] = $block;
-    $context['fields'] = get_fields();
-    $context['content'] = $content;
-    $context['is_preview'] = $is_preview;
-
-    $slug = explode('/', $block['name'])[1];
-    $template = 'blocks/' . $slug . '/index.twig';
-
-    Timber::render($template, $context);
-}
-
 /**
  * Get an instance of Symfony Finder, if available.
  *

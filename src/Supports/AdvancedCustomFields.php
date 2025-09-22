@@ -8,63 +8,52 @@
 
 namespace Picowind\Supports;
 
-use DirectoryIterator;
-
-use function acf_add_options_page;
-use function acf_add_options_sub_page;
+use Picowind\Core\Template;
+use Picowind\Utils\Theme as UtilsTheme;
+use Timber\Timber;
 
 class AdvancedCustomFields
 {
     public function __construct()
     {
-        add_action('acf/init', [$this, 'acf_register_blocks']);
-
-        // add_action('acf/init', [$this, 'register_options_pages']);
+        add_filter('block_type_metadata', [$this, 'metadata'], 2);
     }
 
-    public function acf_register_blocks(): void
+    public function metadata(array $metadata): array
     {
-        $blocks = [];
+        if (! isset($metadata['file'])) {
+            return $metadata;
+        }
 
-        foreach (new DirectoryIterator(get_template_directory() . '/blocks') as $dir) {
-            if ($dir->isDot()) {
-                continue;
-            }
-
-            if (file_exists($dir->getPathname() . '/block.json')) {
-                $blocks[] = $dir->getPathname();
+        // Check if the block's file is within any of the blocks directories
+        if (strpos($metadata['file'], UtilsTheme::current_dir() . '/blocks') === false) {
+            if (UtilsTheme::is_child_theme() && strpos($metadata['file'], UtilsTheme::parent_dir() . '/blocks') === false) {
+                return $metadata;
             }
         }
 
-        asort($blocks);
-
-        foreach ($blocks as $block) {
-            register_block_type($block);
+        if (strpos($metadata['name'], 'acf/') === false) {
+            return $metadata;
         }
+
+        if (! isset($metadata['acf'])) {
+            $metadata['acf'] = [
+                'picowind' => true,
+            ];
+        }
+
+        return $metadata;
     }
 
-    public function register_options_pages(): void
+    public static function block_render_callback(array $block, string $content = '', bool $is_preview = false, int $post_id = 0): void
     {
-        if (function_exists('acf_add_options_page')) {
-            acf_add_options_page([
-                'page_title' => 'Theme Settings',
-                'menu_title' => 'Theme Settings',
-                'menu_slug' => 'theme-settings',
-                'capability' => 'manage_options',
-                'redirect' => false,
-                'icon_url' => 'dashicons-admin-generic',
-            ]);
+        $context = Timber::context();
+        $context['post'] = Timber::get_post();
+        $context['block'] = $block;
+        $context['fields'] = get_fields();
+        $context['content'] = $content;
+        $context['is_preview'] = $is_preview;
 
-            acf_add_options_sub_page([
-                'page_title' => 'Header',
-                'menu_title' => 'Header',
-                'parent_slug' => 'theme-settings',
-            ]);
-            acf_add_options_sub_page([
-                'page_title' => 'Footer',
-                'menu_title' => 'Footer',
-                'parent_slug' => 'theme-settings',
-            ]);
-        }
+        Template::render($block['render_engine'], $block['path'] . '/index.?', $context);
     }
 }
