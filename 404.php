@@ -7,7 +7,9 @@
 
 namespace Picowind;
 
+use Picowind\Core\Template;
 use Timber\Timber;
 
 $context = Timber::context();
-Timber::render('404.twig', $context);
+// Template::render('twig', '404.twig', $context);
+Template::render('404', $context);

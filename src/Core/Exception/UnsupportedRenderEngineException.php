@@ -12,8 +12,8 @@ use Exception;
 
 class UnsupportedRenderEngineException extends Exception
 {
-    public function __construct($engine)
+    public function __construct($engine, $message = '')
     {
-        parent::__construct("Unsupported render engine: {$engine}");
+        parent::__construct("Unsupported render engine: {$engine}. {$message}");
     }
 }

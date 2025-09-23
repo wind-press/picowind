@@ -12,6 +12,7 @@ use Exception;
 use Picowind\Core\Exception\TemplateNotExistException;
 use Picowind\Core\Exception\UnsupportedRenderEngineException;
 use Picowind\Core\Render\Blade as RenderBlade;
+use Picowind\Core\Render\Php as RenderPhp;
 use Picowind\Core\Render\Twig as RenderTwig;
 use Picowind\Utils\Theme as UtilsTheme;
 
@@ -88,58 +89,116 @@ class Template
         $this->twig_cache_path = $upload_dir . '/picowind/cache/twig';
         $this->blade_cache_path = $upload_dir . '/picowind/cache/blade';
 
-        // blocks and views directories
-        $this->template_dirs = [
-            UtilsTheme::current_dir() . '/blocks',
-            UtilsTheme::current_dir() . '/views',
-        ];
+        $current_dir = UtilsTheme::current_dir();
+
+        $this->template_dirs = array_merge(
+            $this->template_dirs,
+            [
+                $current_dir . '/views',
+                $current_dir . '/blocks',
+                $current_dir . '/components',
+            ],
+        );
+
         if (UtilsTheme::is_child_theme()) {
-            array_push($this->template_dirs, UtilsTheme::parent_dir() . '/blocks');
-            array_push($this->template_dirs, UtilsTheme::parent_dir() . '/views');
+            $parent_dir = UtilsTheme::parent_dir();
+            $this->template_dirs = array_merge(
+                $this->template_dirs,
+                [
+                    $parent_dir . '/views',
+                    $parent_dir . '/blocks',
+                    $parent_dir . '/components',
+                ],
+            );
         }
     }
 
     /**
      * Render a template using the specified engine.
      *
-     * @param string $engine The template engine to use ('twig', 'blade', 'php').
-     * @param string $path The path to the template file including the file extension.
+     * @param string|array $path The path to the template file(s) including the file extension.
      * @param array  $context The context data to pass to the template.
+     * @param ?string $engine The template engine to use ('twig', 'blade', 'php'). Default is 'twig' or determined by file extension.
      * @throws TemplateNotExist If the template file does not exist.
      */
-    public function render_template(string $engine, string $path, array $context = []): void
+    public function render_template($paths, array $context = [], ?string $engine = null): void
     {
-        // if the extension is `.?`, determine the actual extension based on the engine
-        if (substr($path, -2) === '.?') {
-            if ($engine === 'twig') {
-                $path = substr($path, 0, -2) . '.twig';
-            } elseif ($engine === 'blade') {
-                $path = substr($path, 0, -2) . '.blade.php';
-            } elseif ($engine === 'php') {
-                $path = substr($path, 0, -2) . '.php';
-            } else {
-                throw new TemplateNotExistException($path);
+        // Handle array of paths for fallback support
+        if (is_array($paths)) {
+            // if engine is not specified, throw exception
+            if ($engine === null) {
+                throw new UnsupportedRenderEngineException('unknown', 'Engine must be specified when multiple paths are provided.');
             }
-        }
+            $paths = array_map(fn ($single_path) => $this->process_path_extension($single_path, $engine), $paths);
+        } else {
+            // Handle single path
+            if ($engine === null) {
+                $ext = pathinfo($paths, PATHINFO_EXTENSION);
+                if ($ext === 'twig') {
+                    $engine = 'twig';
+                } elseif ($ext === 'php') {
+                    // could be blade or php
+                    if (substr($paths, -10) === '.blade.php') {
+                        $engine = 'blade';
+                    } else {
+                        $engine = 'php';
+                    }
+                } elseif ($ext === '?') {
+                    throw new UnsupportedRenderEngineException('?', 'Cannot determine engine from `.?` extension. Please provide a valid extension or specify the engine.');
+                } else {
+                    // default to twig
+                    $engine = 'twig';
+                    $paths .= '.twig';
+                }
+            }
 
-        if (! file_exists($path)) {
-            throw new TemplateNotExistException($path);
+            $paths = $this->process_path_extension($paths, $engine);
         }
 
         if ($engine === 'twig') {
-            RenderTwig::get_instance()->render_template($path, $context);
+            RenderTwig::get_instance()->render_template($paths, $context);
         } elseif ($engine === 'blade') {
-            RenderBlade::get_instance()->render_template($path, $context);
+            RenderBlade::get_instance()->render_template($paths, $context);
         } elseif ($engine === 'php') {
-            extract($context);
-            include $path;
+            RenderPhp::get_instance()->render_template($paths, $context);
         } else {
             throw new UnsupportedRenderEngineException($engine);
         }
     }
 
-    public static function render(string $engine, string $path, array $context = []): void
+    /**
+     * Process path extension based on engine
+     * @param string $path The original template path.
+     * @param string $engine The rendering engine.
+     * @return string The processed template path with correct extension.
+     * @throws UnsupportedRenderEngineException If the engine is not supported.
+     */
+    private function process_path_extension(string $path, ?string $engine = null): string
     {
-        self::get_instance()->render_template($engine, $path, $context);
+        // if the extension is `.?`, determine the actual extension based on the engine
+        if (substr($path, -2) === '.?') {
+            if ($engine === 'twig') {
+                return substr($path, 0, -2) . '.twig';
+            } elseif ($engine === 'blade') {
+                return substr($path, 0, -2) . '.blade.php';
+            } elseif ($engine === 'php') {
+                return substr($path, 0, -2) . '.php';
+            } else {
+                throw new UnsupportedRenderEngineException($engine);
+            }
+        }
+        return $path;
+    }
+
+    /**
+     * Static method to render a template using the specified engine.
+     *
+     * @param string|array $paths The path to the template file(s) including the file extension.
+     * @param array  $context The context data to pass to the template.
+     * @param ?string $engine The template engine to use ('twig', 'blade', 'php'). Default is 'twig' or determined by file extension.
+     */
+    public static function render($paths, array $context = [], ?string $engine = null): void
+    {
+        self::get_instance()->render_template($paths, $context, $engine);
     }
 }

@@ -11,7 +11,6 @@ namespace Picowind\Core;
 use DirectoryIterator;
 use Exception;
 use Picowind\Core\Template as CoreTemplate;
-use Picowind\Utils\Theme as UtilsTheme;
 
 /**
  * Handle custom blocks registration and management.
@@ -170,12 +169,6 @@ class Blocks
                 $settings['render_callback'] = ['Picowind\Supports\AdvancedCustomFields', 'block_render_callback'];
             }
         }
-
-        // $settings['mode'] = $settings['mode'] ?? 'preview';
-
-        // if (! isset($settings['render_callback']) && in_array($namespace, ['acf', 'blockstudio'], true)) {
-        //     $settings['render_callback'] = ['Picowind\Supports\AdvancedCustomFields', 'block_render_callback'];
-        // }
 
         return $settings;
     }

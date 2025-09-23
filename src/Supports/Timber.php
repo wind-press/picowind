@@ -86,10 +86,10 @@ class Timber
         $context['footer_menu'] = TimberTimber::get_menu('footer');
         $context['options'] = function_exists('get_fields') ? get_fields('option') : [];
 
-        // Require block functions files
-        foreach (glob(get_template_directory() . '/blocks/*/functions.php') as $file) {
-            require_once $file;
-        }
+        // // Require block functions files
+        // foreach (glob(get_template_directory() . '/blocks/*/functions.php') as $file) {
+        //     require_once $file;
+        // }
 
         return $context;
     }

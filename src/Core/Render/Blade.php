@@ -66,23 +66,49 @@ class Blade
         $this->blade = new BladeBlade(CoreTemplate::get_instance()->template_dirs, CoreTemplate::get_instance()->blade_cache_path);
     }
 
-    public function render_template(string $path, array $context = [], bool $print = true)
+    /**
+     * Render a Blade template.
+     *
+     * @param string|array $paths The path(s) to the Blade template file(s).
+     * @param array  $context The context data to pass to the template.
+     * @param bool   $print Whether to print the output directly or return it.
+     * @return void|string
+     */
+    public function render_template($paths, array $context = [], bool $print = true)
     {
-        // Convert absolute path to relative view name for Blade
-        $template_dirs = CoreTemplate::get_instance()->template_dirs;
         $view_name = null;
-
-        foreach ($template_dirs as $dir) {
-            if (strpos($path, $dir) === 0) {
-                $relative_path = substr($path, strlen($dir) + 1);
-                $view_name = str_replace(['/', '.blade.php'], ['.', ''], $relative_path);
-                break;
+        $template_dirs = CoreTemplate::get_instance()->template_dirs;
+        $resolve_view_name = function ($path) use ($template_dirs) {
+            foreach ($template_dirs as $dir) {
+                if (strpos($path, $dir) === 0) {
+                    $relative_path = substr($path, strlen($dir) + 1);
+                    return str_replace(['/', '.blade.php'], ['.', ''], $relative_path);
+                }
             }
+            // If not absolute, treat as relative to template_dirs
+            if (substr($path, -10) === '.blade.php') {
+                $relative_path = $path;
+            } else {
+                $relative_path = $path . '.blade.php';
+            }
+            $relative_path = ltrim($relative_path, '/');
+            return str_replace(['/', '.blade.php'], ['.', ''], $relative_path);
+        };
+
+        if (is_array($paths)) {
+            foreach ($paths as $single_path) {
+                $view_name = $resolve_view_name($single_path);
+                if ($view_name) {
+                    break;
+                }
+            }
+        } else {
+            $view_name = $resolve_view_name($paths);
         }
 
         if ($view_name === null) {
             // Fallback: use the basename without extension
-            $view_name = pathinfo($path, PATHINFO_FILENAME);
+            $view_name = pathinfo($paths, PATHINFO_FILENAME);
         }
 
         $output = $this->blade->make($view_name, $context)->render();
