@@ -9,7 +9,6 @@
 namespace Picowind\Core;
 
 use Exception;
-use Picowind\Core\Exception\TemplateNotExistException;
 use Picowind\Core\Exception\UnsupportedRenderEngineException;
 use Picowind\Core\Render\Blade as RenderBlade;
 use Picowind\Core\Render\Php as RenderPhp;
@@ -119,9 +118,11 @@ class Template
      * @param string|array $path The path to the template file(s) including the file extension.
      * @param array  $context The context data to pass to the template.
      * @param ?string $engine The template engine to use ('twig', 'blade', 'php'). Default is 'twig' or determined by file extension.
+     * @param ?bool $print Whether to print the rendered template. Default is true.
+     * @return void|string The rendered template output if $print is false, otherwise void.
      * @throws TemplateNotExist If the template file does not exist.
      */
-    public function render_template($paths, array $context = [], ?string $engine = null): void
+    public function render_template($paths, array $context = [], ?string $engine = null, ?bool $print = true)
     {
         // Handle array of paths for fallback support
         if (is_array($paths)) {
@@ -156,11 +157,11 @@ class Template
         }
 
         if ($engine === 'twig') {
-            RenderTwig::get_instance()->render_template($paths, $context);
+            return RenderTwig::get_instance()->render_template($paths, $context, $print);
         } elseif ($engine === 'blade') {
-            RenderBlade::get_instance()->render_template($paths, $context);
+            return RenderBlade::get_instance()->render_template($paths, $context, $print);
         } elseif ($engine === 'php') {
-            RenderPhp::get_instance()->render_template($paths, $context);
+            return RenderPhp::get_instance()->render_template($paths, $context, $print);
         } else {
             throw new UnsupportedRenderEngineException($engine);
         }
@@ -196,9 +197,11 @@ class Template
      * @param string|array $paths The path to the template file(s) including the file extension.
      * @param array  $context The context data to pass to the template.
      * @param ?string $engine The template engine to use ('twig', 'blade', 'php'). Default is 'twig' or determined by file extension.
+     * @param ?bool $print Whether to print the rendered template. Default is true.
+     * @return void|string The rendered template output if $print is false, otherwise void.
      */
-    public static function render($paths, array $context = [], ?string $engine = null): void
+    public static function render($paths, array $context = [], ?string $engine = null, ?bool $print = true)
     {
-        self::get_instance()->render_template($paths, $context, $engine);
+        return self::get_instance()->render_template($paths, $context, $engine, $print);
     }
 }

@@ -56,22 +56,22 @@ class Php
      */
     private function __construct() {}
 
-    public function render_template(string|array $path, array $context = [], bool $print = true)
+    public function render_template($paths, array $context = [], bool $print = true)
     {
         // Find first existing template from array or use single path
-        if (is_array($path)) {
+        if (is_array($paths)) {
             $template_path = null;
-            foreach ($path as $single_path) {
+            foreach ($paths as $single_path) {
                 if (file_exists($single_path)) {
                     $template_path = $single_path;
                     break;
                 }
             }
             if (! $template_path) {
-                throw new TemplateNotExistException(implode(', ', $path));
+                throw new TemplateNotExistException(implode(', ', $paths));
             }
         } else {
-            $template_path = $path;
+            $template_path = $paths;
         }
 
         extract($context);

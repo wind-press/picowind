@@ -54,6 +54,6 @@ class AdvancedCustomFields
         $context['content'] = $content;
         $context['is_preview'] = $is_preview;
 
-        Template::render($block['render_engine'], $block['path'] . '/index.?', $context);
+        Template::render($block['path'] . '/index.?', $context, $block['render_engine'] ?? null);
     }
 }

@@ -8,7 +8,7 @@
     themes: light --default;
 }
 
-@plugin "@tailwindcss/typography@0.5.16";
+@plugin "@tailwindcss/typography";
 
 @utility container {
     @apply w-full mx-auto px-4 md:px-5;
