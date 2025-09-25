@@ -1,49 +1,58 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind\Supports;
 
 use Blockstudio\Build;
-use Picowind\Core\Template as CoreTemplate;
+use Picowind\Core\Discovery\Attributes\Hook;
+use Picowind\Core\Discovery\Attributes\Service;
+use Picowind\Utils\Theme as UtilsTheme;
 
+use function Picowind\render;
+
+#[Service]
 class Blockstudio
 {
-    public function __construct()
-    {
-        add_filter('blockstudio/settings/users/roles', [$this, 'editor_access']);
-        add_filter('blockstudio/settings/tailwind/enabled', static fn () => false);
-        add_filter('picowind/blocks/register:should-register', [$this, 'should_register'], 10, 3);
-        add_action('picowind/blocks/register:before', [$this, 'register_blocks'], 10, 2);
-        add_filter('blockstudio/blocks/render', [$this, 'block_render'], 10, 4);
-    }
+    public function __construct() {}
 
+    #[Hook('blockstudio/settings/users/roles', 'filter')]
     public function editor_access($roles): array
     {
         $roles[] = 'administrator';
         return $roles;
     }
 
+    #[Hook('blockstudio/settings/tailwind/enabled', 'filter')]
+    public function disable_tailwind(): bool
+    {
+        return false;
+    }
+
+    #[Hook('picowind/blocks/register:should-register', 'filter', 10, 3)]
     public function should_register(bool $should_register, array $block_json, string $dir_path): bool
     {
-        if (isset($block_json['blockstudio']) && ($block_json['blockstudio'] !== true || $block_json['blockstudio'] !== 1)) {
+        if (isset($block_json['blockstudio']) && (true !== $block_json['blockstudio'] || 1 !== $block_json['blockstudio'])) {
             return false;
         }
 
         return $should_register;
     }
 
+    #[Hook('picowind/blocks/register:before', 'action', 10, 2)]
     public function register_blocks(array $block_json, string $dir_path): void
     {
         if (! class_exists(Build::class)) {
             return;
         }
 
-        if (! isset($block_json['blockstudio']) || $block_json['blockstudio'] !== true && $block_json['blockstudio'] !== 1) {
+        if (! isset($block_json['blockstudio']) || true !== $block_json['blockstudio'] && 1 !== $block_json['blockstudio']) {
             return;
         }
 
@@ -52,30 +61,32 @@ class Blockstudio
         ]);
     }
 
+    #[Hook('blockstudio/blocks/render', 'filter', 10, 4)]
     public function block_render($value, $block, $isEditor, $isPreview)
     {
         $blockPath = $block->path;
 
         // only render blocks from the /blocks directory
         $in_blocks_dir = false;
-        foreach (CoreTemplate::get_instance()->template_dirs as $dir_path) {
-            if (strpos($blockPath, $dir_path) !== false) {
+        foreach (UtilsTheme::get_template_directories() as $dir_path) {
+            if (str_contains((string) $blockPath, (string) $dir_path)) {
                 $in_blocks_dir = true;
                 break;
             }
         }
+
         if (! $in_blocks_dir) {
             return $value;
         }
 
         // if not a blade or twig file, return the original value
-        if (! str_ends_with($blockPath, '.blade.php') && ! str_ends_with($blockPath, '.twig')) {
+        if (! str_ends_with((string) $blockPath, '.blade.php') && ! str_ends_with((string) $blockPath, '.twig')) {
             return $value;
         }
 
         $data = $block->blockstudio['data'];
 
-        $rendered = CoreTemplate::render(
+        $rendered = render(
             $blockPath,
             [
                 'a' => $data['attributes'],

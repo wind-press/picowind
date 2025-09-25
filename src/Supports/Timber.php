@@ -1,15 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind\Supports;
 
-use Exception;
-use Picowind\Core\Render\Twig;
+use Picowind\Core\Discovery\Attributes\Hook;
+use Picowind\Core\Discovery\Attributes\Service;
+use Picowind\Core\Render\Twig as RenderTwig;
 use Timber\Site;
 use Timber\Timber as TimberTimber;
 use Twig\Environment;
@@ -17,66 +20,24 @@ use Twig\TwigFunction;
 
 use function get_fields;
 
+#[Service]
 class Timber
 {
-    private Site $site;
+    private ?Site $site = null;
 
-    /**
-     * Stores the instance, implementing a Singleton pattern.
-     */
-    private static self $instance;
-
-    /**
-     * Singletons should not be cloneable.
-     */
-    private function __clone()
-    {
-    }
-
-    /**
-     * Singletons should not be restorable from strings.
-     *
-     * @throws Exception Cannot unserialize a singleton.
-     */
-    public function __wakeup()
-    {
-        throw new Exception('Cannot unserialize a singleton.');
-    }
-
-    /**
-     * This is the static method that controls the access to the singleton
-     * instance. On the first run, it creates a singleton object and places it
-     * into the static property. On subsequent runs, it returns the client existing
-     * object stored in the static property.
-     */
-    public static function get_instance(): self
-    {
-        if (! isset(self::$instance)) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
-
-    /**
-     * The Singleton's constructor should always be private to prevent direct
-     * construction calls with the `new` operator.
-     */
-    private function __construct()
-    {
-        Twig::get_instance();
-        add_filter('timber/context', [$this, 'add_to_context']);
-        add_filter('timber/twig', [$this, 'add_to_twig']);
-        add_filter('timber/twig', [$this, 'add_inline_svg_to_twig']);
-
+    public function __construct(
+        // private RenderTwig $twigRenderer,
+    ) {
+        // Twig::get_instance();
         TimberTimber::init();
     }
 
-    public static function init(Site $site)
+    public function setSite(Site $site): void
     {
-        self::get_instance()->site = $site;
+        $this->site = $site;
     }
 
+    #[Hook('timber/context', 'filter')]
     public function add_to_context(array $context): array
     {
         $context['site'] = $this->site;
@@ -94,6 +55,14 @@ class Timber
         return $context;
     }
 
+    #[Hook('timber/twig', 'filter')]
+    public function setup_twig(Environment $twigEnvironment): Environment
+    {
+        $twigEnvironment = $this->add_to_twig($twigEnvironment);
+        $twigEnvironment = $this->add_inline_svg_to_twig($twigEnvironment);
+        return $twigEnvironment;
+    }
+
     public function add_to_twig(Environment $twigEnvironment): Environment
     {
         return $twigEnvironment;
@@ -101,7 +70,7 @@ class Timber
 
     public function add_inline_svg_to_twig(Environment $twigEnvironment): Environment
     {
-        $twigEnvironment->addFunction(new TwigFunction('inline_svg', [$this, 'inline_svg'], ['is_safe' => ['html']]));
+        $twigEnvironment->addFunction(new TwigFunction('inline_svg', $this->inline_svg(...), ['is_safe' => ['html']]));
         return $twigEnvironment;
     }
 
@@ -131,22 +100,22 @@ class Timber
 
         // basic hardening (use a real sanitizer in production: enshrined/svg-sanitizer or Safe SVG plugin).
         $svg = preg_replace('/<\?xml.*?\?>/i', '', $svg);
-        $svg = preg_replace('#<!DOCTYPE.*?>#i', '', $svg);
-        $svg = preg_replace('#<(script|foreignObject)\b[^>]*>.*?</\1>#is', '', $svg);
+        $svg = preg_replace('#<!DOCTYPE.*?>#i', '', (string) $svg);
+        $svg = preg_replace('#<(script|foreignObject)\b[^>]*>.*?</\1>#is', '', (string) $svg);
 
         // force monochrome if requested (replace fills/strokes with currentColor)
         if (isset($opts['monochrome']) && $opts['monochrome']) {
-            $svg = preg_replace('/\sfill="(?!none)[^"]*"/i', ' fill="currentColor"', $svg);
-            $svg = preg_replace('/\sstroke="(?!none)[^"]*"/i', ' stroke="currentColor"', $svg);
+            $svg = preg_replace('/\sfill="(?!none)[^"]*"/i', ' fill="currentColor"', (string) $svg);
+            $svg = preg_replace('/\sstroke="(?!none)[^"]*"/i', ' stroke="currentColor"', (string) $svg);
         }
 
         // add class/title on root <svg>
-        if (isset($opts['class']) && $opts['class'] !== '') {
-            $svg = preg_replace('/<svg\b/i', '<svg class="' . esc_attr($opts['class']) . '"', $svg, 1);
+        if (isset($opts['class']) && '' !== $opts['class']) {
+            $svg = preg_replace('/<svg\b/i', '<svg class="' . esc_attr($opts['class']) . '"', (string) $svg, 1);
         }
 
-        if (isset($opts['title']) && $opts['title'] !== '') {
-            $svg = preg_replace('/<svg\b/i', '<svg role="img" aria-label="' . esc_attr($opts['title']) . '"', $svg, 1);
+        if (isset($opts['title']) && '' !== $opts['title']) {
+            $svg = preg_replace('/<svg\b/i', '<svg role="img" aria-label="' . esc_attr($opts['title']) . '"', (string) $svg, 1);
         }
 
         return $svg;

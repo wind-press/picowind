@@ -1,18 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 use Picowind\Supports\LiveCanvas as LiveCanvasSupports;
 use Picowind\Theme;
-use Timber\Timber;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-new Theme();
+// Initialize the unified theme architecture
+Theme::get_instance();
 
 if (! function_exists('lc_theme_is_livecanvas_friendly')) {
     function lc_theme_is_livecanvas_friendly(): bool

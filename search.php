@@ -1,8 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind;
@@ -11,8 +14,8 @@ use Timber\Timber;
 
 $templates = ['search.twig', 'archive.twig', 'index.twig'];
 
-$context = Timber::context();
+$context = context();
 $context['title'] = 'Search results for ' . get_search_query();
 $context['posts'] = Timber::get_posts();
 
-Timber::render($templates, $context);
+render($templates, $context, 'twig');

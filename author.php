@@ -1,8 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind;
@@ -11,11 +14,11 @@ use Timber\Timber;
 
 global $wp_query;
 
-$context = Timber::context();
+$context = context();
 $context['posts'] = Timber::get_posts();
 if (isset($wp_query->query_vars['author'])) {
     $author = Timber::get_user($wp_query->query_vars['author']);
     $context['author'] = $author;
     $context['title'] = 'Author Archives: ' . $author->name();
 }
-Timber::render(['author.twig', 'archive.twig'], $context);
+render(['author.twig', 'archive.twig'], $context, 'twig');

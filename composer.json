@@ -12,6 +12,13 @@
         }
     ],
     "require": {
+        "php": ">=8.1",
+        "psr/container": "^2.0",
+        "psr/log": "^2.0|^3.0",
+        "symfony/config": "^6.4",
+        "symfony/dependency-injection": "^6.4",
+        "symfony/http-client": "^6.4",
+        "symfony/ux-icons": "^2.30",
         "timber/timber": "^2.0",
         "webman/blade": "^1.5"
     },
@@ -28,8 +35,7 @@
             "Picowind\\": "src/"
         },
         "files": [
-            "src/functions.php",
-            "constant.php"
+            "src/functions.php"
         ]
     },
     "minimum-stability": "stable",
@@ -48,7 +54,7 @@
         "lint": "vendor/bin/mago lint --potentially-unsafe --minimum-fail-level=note"
     },
     "require-dev": {
-        "carthage-software/mago": "^1.0.0-beta.16",
+        "carthage-software/mago": "^1.0.0-beta.24",
         "rector/rector": "^2.1"
     }
 }

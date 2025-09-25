@@ -1,24 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind\Supports;
 
-use Picowind\Core\Template;
+use Picowind\Core\Discovery\Attributes\Hook;
+use Picowind\Core\Discovery\Attributes\Service;
 use Picowind\Utils\Theme as UtilsTheme;
 use Timber\Timber;
 
+use function Picowind\render;
+
+#[Service]
 class AdvancedCustomFields
 {
-    public function __construct()
-    {
-        add_filter('block_type_metadata', [$this, 'metadata'], 2);
-    }
+    public function __construct() {}
 
+    #[Hook('block_type_metadata', 'filter', 2)]
     public function metadata(array $metadata): array
     {
         if (! isset($metadata['file'])) {
@@ -26,13 +30,16 @@ class AdvancedCustomFields
         }
 
         // Check if the block's file is within any of the blocks directories
-        if (strpos($metadata['file'], UtilsTheme::current_dir() . '/blocks') === false) {
-            if (UtilsTheme::is_child_theme() && strpos($metadata['file'], UtilsTheme::parent_dir() . '/blocks') === false) {
-                return $metadata;
-            }
+        if (
+            strpos($metadata['file'], UtilsTheme::current_dir() . '/blocks') === false && (
+                UtilsTheme::is_child_theme()
+                && ! str_contains($metadata['file'], UtilsTheme::parent_dir() . '/blocks')
+            )
+        ) {
+            return $metadata;
         }
 
-        if (strpos($metadata['name'], 'acf/') === false) {
+        if (! str_contains((string) $metadata['name'], 'acf/')) {
             return $metadata;
         }
 
@@ -54,6 +61,6 @@ class AdvancedCustomFields
         $context['content'] = $content;
         $context['is_preview'] = $is_preview;
 
-        Template::render($block['path'] . '/index.?', $context, $block['render_engine'] ?? null);
+        render($block['path'] . '/index', $context, $block['render_engine'] ?? null);
     }
 }

@@ -1,127 +1,124 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind;
 
-use Picowind\Core\Blocks;
-use Picowind\Supports\AdvancedCustomFields as SupportAdvancedCustomFields;
-use Picowind\Supports\Blockstudio as SupportBlockstudio;
-use Picowind\Supports\LiveCanvas as SupportLiveCanvas;
+use Picowind\Core\Container\Container;
+use Picowind\Core\Discovery\CommandDiscovery;
+use Picowind\Core\Discovery\DiscoveryManager;
+use Picowind\Core\Discovery\HookDiscovery;
 use Picowind\Supports\Timber as SupportsTimber;
-use Picowind\Supports\WindPress as SupportsWindPress;
+use RuntimeException;
 use Timber\Site;
 
 class Theme extends Site
 {
+    private static ?self $instance = null;
+
+    private ?Container $container = null;
+
+    private ?DiscoveryManager $discoveryManager = null;
+
+    private bool $booted = false;
+
+    public static function get_instance(): self
+    {
+        if (! self::$instance instanceof self) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
     public function __construct()
     {
-        // add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
-        add_action('after_setup_theme', [$this, 'theme_supports']);
-        add_action('block_categories_all', [$this, 'block_categories_all']);
-        // add_action('enqueue_block_editor_assets', [$this, 'enqueue_assets']);
-        SupportsTimber::init($this);
-        new SupportAdvancedCustomFields();
-        new SupportsWindPress();
-        new SupportLiveCanvas();
-        new SupportBlockstudio();
-
-        // new Blocks();
-        Blocks::get_instance();
-
+        $this->boot();
         parent::__construct();
     }
 
-    public function theme_supports(): void
+    public function boot(): void
     {
-        add_theme_support('automatic-feed-links');
-        add_theme_support(
-            'html5',
-            [
-                'comment-form',
-                'comment-list',
-                'gallery',
-                'caption',
-            ],
-        );
-        add_theme_support('menus');
-        add_theme_support('post-thumbnails');
-        add_theme_support('title-tag');
-        add_theme_support('editor-styles');
+        if ($this->booted) {
+            return;
+        }
 
-        register_nav_menus([
-            'primary' => 'Primary Menu',
-            'footer' => 'Footer Menu',
-        ]);
+        $this->container = new Container();
+        $this->discover_components();
+
+        if (! $this->container instanceof \Picowind\Core\Container\Container) {
+            throw new RuntimeException('Container initialization failed');
+        }
+
+        $this->container->compile();
+        $this->register_discovered_hooks();
+        $this->register_discovered_commands();
+        $this->setup_timber();
+        $this->booted = true;
+
+        do_action('picowind/core:theme.booted', $this);
     }
 
-    public function enqueue_assets(): void
+    public function container(): Container
     {
-        wp_dequeue_style('wp-block-library');
-        wp_dequeue_style('wp-block-library-theme');
-        wp_dequeue_style('wc-block-style');
-        wp_dequeue_script('jquery');
-        wp_dequeue_style('global-styles');
-
-        $vite_env = 'production';
-
-        if (file_exists(get_template_directory() . '/../config.json')) {
-            $config = json_decode(file_get_contents(get_template_directory() . '/../config.json'), true);
-            $vite_env = $config['vite']['environment'] ?? 'production';
+        if (! $this->container instanceof Container) {
+            throw new RuntimeException('Theme not booted yet. Call boot() first.');
         }
 
-        $dist_uri = get_template_directory_uri() . '/assets/dist';
-        $dist_path = get_template_directory() . '/assets/dist';
-        $manifest = null;
+        return $this->container;
+    }
 
-        if (file_exists($dist_path . '/.vite/manifest.json')) {
-            $manifest = json_decode(file_get_contents($dist_path . '/.vite/manifest.json'), true);
+    private function discover_components(): void
+    {
+        if (! $this->container instanceof \Picowind\Core\Container\Container) {
+            throw new RuntimeException('Container not initialized');
         }
 
-        if (is_array($manifest) && ($vite_env === 'production' || is_admin())) {
-            $js_file = 'theme/assets/main.js';
-            wp_enqueue_style('main', $dist_uri . '/' . $manifest[$js_file]['css'][0]);
-            $strategy = is_admin() ? 'async' : 'defer';
-            $in_footer = ! (bool) is_admin();
-            wp_enqueue_script(
-                'main',
-                $dist_uri . '/' . $manifest[$js_file]['file'],
-                [],
-                '',
-                [
-                    'strategy' => $strategy,
-                    'in_footer' => $in_footer,
-                ],
-            );
-            $editor_css_file = 'theme/assets/styles/editor-style.css';
-            add_editor_style($dist_uri . '/' . $manifest[$editor_css_file]['file']);
+        $this->discoveryManager = new DiscoveryManager($this->container);
+        $this->discoveryManager->discover();
+    }
+
+    private function register_discovered_hooks(): void
+    {
+        if (! $this->discoveryManager instanceof \Picowind\Core\Discovery\DiscoveryManager) {
+            return;
         }
 
-        if ($vite_env === 'development') {
-            function vite_head_module_hook(): void
-            {
-                echo '<script type="module" crossorigin src="http://localhost:3001/@vite/client"></script>';
-                echo '<script type="module" crossorigin src="http://localhost:3001/theme/assets/main.js"></script>';
+        foreach ($this->discoveryManager->getDiscoveries() as $discovery) {
+            if ($discovery instanceof HookDiscovery) {
+                $discovery->registerHooks();
             }
-
-            add_action('wp_head', 'vite_head_module_hook');
         }
     }
 
-    public function block_categories_all(array $categories): array
+    private function register_discovered_commands(): void
     {
-        return array_merge(
-            [
-                [
-                    'slug' => 'custom',
-                    'title' => __('Custom'),
-                ],
-            ],
-            $categories,
-        );
+        if (! $this->discoveryManager instanceof \Picowind\Core\Discovery\DiscoveryManager) {
+            return;
+        }
+
+        foreach ($this->discoveryManager->getDiscoveries() as $discovery) {
+            if ($discovery instanceof CommandDiscovery) {
+                $discovery->registerCommands();
+            }
+        }
+    }
+
+    private function setup_timber(): void
+    {
+        // Get the Timber service from container and set the site
+        try {
+            $timberService = $this->container->get(SupportsTimber::class);
+            $timberService->setSite($this);
+        } catch (\Exception $exception) {
+            // Fallback if Timber service not found
+            error_log('Failed to get Timber service from container: ' . $exception->getMessage());
+        }
     }
 }

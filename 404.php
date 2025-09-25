@@ -1,15 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind;
 
-use Picowind\Core\Template;
-use Timber\Timber;
-
-$context = Timber::context();
-// Template::render('twig', '404.twig', $context);
-Template::render('404', $context);
+$context = context();
+render('404', $context);

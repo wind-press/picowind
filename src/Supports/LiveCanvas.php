@@ -1,13 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind\Supports;
 
+use Picowind\Core\Discovery\Attributes\Service;
+
+#[Service]
 class LiveCanvas
 {
     public function __construct() {}

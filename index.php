@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * The main template file
  * This is the most generic template file in a WordPress theme
@@ -8,18 +11,16 @@
  *
  * Methods for TimberHelper can be found in the /lib sub-directory
  *
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind;
 
-use Timber\Timber;
-
-$context = Timber::context();
+$context = context();
 $templates = ['index.twig'];
 if (is_home()) {
     array_unshift($templates, 'front-page.twig', 'home.twig');
 }
-Timber::render($templates, $context);
+render($templates, $context, 'twig');

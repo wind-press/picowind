@@ -3,7 +3,7 @@
   "name": "acf/features",
   "title": "Features",
   "description": "Grid of features with icon, title and text.",
-  "category": "custom",
+  "category": "picowind",
   "icon": "screenoptions",
   "keywords": [
     "features",

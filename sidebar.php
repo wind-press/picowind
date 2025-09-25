@@ -1,12 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind;
 
-use Timber\Timber;
-
-Timber::render(['sidebar.twig'], $data);
+$context = context();
+render('sidebar.twig', $context, 'twig');

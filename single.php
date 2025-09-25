@@ -1,20 +1,23 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind;
 
 use Timber\Timber;
 
-$context = Timber::context();
+$context = context();
 $timber_post = Timber::get_post();
 $context['post'] = $timber_post;
 
 if (post_password_required($timber_post->ID)) {
-    Timber::render('single-password.twig', $context);
+    render('single-password.twig', $context, 'twig');
 } else {
-    Timber::render(['single-' . $timber_post->ID . '.twig', 'single-' . $timber_post->post_type . '.twig', 'single-' . $timber_post->slug . '.twig', 'single.twig'], $context);
+    render(['single-' . $timber_post->ID . '.twig', 'single-' . $timber_post->post_type . '.twig', 'single-' . $timber_post->slug . '.twig', 'single.twig'], $context, 'twig');
 }

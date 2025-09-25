@@ -1,85 +1,46 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind\Core;
 
 use DirectoryIterator;
-use Exception;
-use Picowind\Core\Template as CoreTemplate;
+use Picowind\Core\Discovery\Attributes\Hook;
+use Picowind\Core\Discovery\Attributes\Service;
+use Picowind\Utils\Theme as UtilsTheme;
 
 /**
  * Handle custom blocks registration and management.
  *
  * @package Picowind
  */
+#[Service]
 class Blocks
 {
     public array $supported_namespaces = ['acf', 'blockstudio', 'picowind'];
+
     public array $supported_render_engines = ['twig', 'blade', 'php'];
+
     public array $blocks_dir = [];
 
-    /**
-     * Stores the instance, implementing a Singleton pattern.
-     */
-    private static self $instance;
-
-    /**
-     * Singletons should not be cloneable.
-     */
-    private function __clone()
-    {
-    }
-
-    /**
-     * Singletons should not be restorable from strings.
-     *
-     * @throws Exception Cannot unserialize a singleton.
-     */
-    public function __wakeup()
-    {
-        throw new Exception('Cannot unserialize a singleton.');
-    }
-
-    /**
-     * This is the static method that controls the access to the singleton
-     * instance. On the first run, it creates a singleton object and places it
-     * into the static property. On subsequent runs, it returns the client existing
-     * object stored in the static property.
-     */
-    public static function get_instance(): self
-    {
-        if (! isset(self::$instance)) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
-
-    /**
-     * The Singleton's constructor should always be private to prevent direct
-     * construction calls with the `new` operator.
-     */
-    private function __construct()
-    {
-        add_action('init', [$this, 'register']);
-        add_filter('block_type_metadata', [$this, 'metadata'], 1);
-        add_filter('block_type_metadata_settings', [$this, 'metadata_settings'], 1, 2);
-    }
+    public function __construct() {}
 
     /**
      * Register custom blocks from the `/blocks` directory.
      */
+    #[Hook('init', 'action')]
     public function register(): void
     {
         $blocks = [];
 
-        foreach (CoreTemplate::get_instance()->template_dirs as $dir_path) {
-            if (substr($dir_path, -7) !== '/blocks') {
+        foreach (UtilsTheme::get_template_directories() as $dir_path) {
+            if (! str_ends_with((string) $dir_path, '/blocks')) {
                 continue;
             }
 
@@ -108,6 +69,7 @@ class Blocks
         }
     }
 
+    #[Hook('block_type_metadata', 'filter', 1)]
     public function metadata(array $metadata): array
     {
         if (! isset($metadata['file'])) {
@@ -115,22 +77,23 @@ class Blocks
         }
 
         $in_blocks_dir = false;
-        foreach (CoreTemplate::get_instance()->template_dirs as $dir_path) {
-            if (strpos($metadata['file'], $dir_path) !== false) {
+        foreach (UtilsTheme::get_template_directories() as $dir_path) {
+            if (str_contains($metadata['file'], (string) $dir_path)) {
                 $in_blocks_dir = true;
                 break;
             }
         }
+
         if (! $in_blocks_dir) {
             return $metadata;
         }
 
         // add `picowind/` namespace as default if not set
-        if (strpos($metadata['name'], '/') === false) {
+        if (! str_contains((string) $metadata['name'], '/')) {
             $metadata['name'] = 'picowind/' . $this->name_slugify($metadata['name']);
         }
 
-        [$namespace, $name] = explode('/', $metadata['name'], 2);
+        [$namespace, $name] = explode('/', (string) $metadata['name'], 2);
 
         if (! in_array($namespace, $this->supported_namespaces, true)) {
             return $metadata;
@@ -148,6 +111,7 @@ class Blocks
         return $metadata;
     }
 
+    #[Hook('block_type_metadata_settings', 'filter', 1, 2)]
     public function metadata_settings(array $settings, array $metadata): array
     {
         if (! isset($metadata['file'])) {
@@ -155,17 +119,18 @@ class Blocks
         }
 
         $in_blocks_dir = false;
-        foreach (CoreTemplate::get_instance()->template_dirs as $dir_path) {
-            if (strpos($metadata['file'], $dir_path) !== false) {
+        foreach (UtilsTheme::get_template_directories() as $dir_path) {
+            if (str_contains($metadata['file'], (string) $dir_path)) {
                 $in_blocks_dir = true;
                 break;
             }
         }
+
         if (! $in_blocks_dir) {
             return $settings;
         }
 
-        [$namespace, $name] = explode('/', $metadata['name'], 2);
+        [$namespace, $name] = explode('/', (string) $metadata['name'], 2);
 
         if (! in_array($namespace, $this->supported_namespaces, true)) {
             return $settings;
@@ -174,8 +139,8 @@ class Blocks
         if (isset($metadata['renderEngine']) && in_array($metadata['renderEngine'], $this->supported_render_engines, true)) {
             $settings['render_engine'] = $metadata['renderEngine'];
 
-            if ($namespace === 'acf') {
-                $settings['render_callback'] = ['Picowind\Supports\AdvancedCustomFields', 'block_render_callback'];
+            if ('acf' === $namespace) {
+                $settings['render_callback'] = \Picowind\Supports\AdvancedCustomFields::block_render_callback(...);
             }
         }
 
@@ -193,7 +158,7 @@ class Blocks
     private function name_slugify($str = '', $glue = '-')
     {
         $raw = $str;
-        $slug = str_replace(array('_', '-', '/', ' '), $glue, strtolower(remove_accents($raw)));
+        $slug = str_replace(['_', '-', '/', ' '], $glue, strtolower(remove_accents($raw)));
         $slug = preg_replace('/[^A-Za-z0-9' . preg_quote($glue) . ']/', '', $slug);
 
         /**
@@ -206,5 +171,19 @@ class Blocks
          * @param string $glue The separator used to join the string into a slug.
          */
         return apply_filters('picowind/blocks/name_slugify', $slug, $raw, $glue);
+    }
+
+    #[Hook('block_categories_all', 'filter')]
+    public function add_custom_block_category(array $categories): array
+    {
+        return array_merge(
+            [
+                [
+                    'slug' => 'picowind',
+                    'title' => __('Picowind', 'picowind'),
+                ],
+            ],
+            $categories,
+        );
     }
 }

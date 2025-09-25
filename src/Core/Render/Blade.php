@@ -1,69 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * @package WordPress
+ * @package Picowind
  * @subpackage Picowind
- * @since Picowind 1.0.0
+ * @since 1.0.0
  */
 
 namespace Picowind\Core\Render;
 
-use Exception;
 use Jenssegers\Blade\Blade as BladeBlade;
-use Picowind\Core\Template as CoreTemplate;
+use Picowind\Core\Discovery\Attributes\Service;
+use Picowind\Utils\Theme as UtilsTheme;
 
+#[Service]
 class Blade
 {
-    private ?BladeBlade $blade;
+    private readonly ?BladeBlade $bladeBlade;
 
-    /**
-     * Stores the instance, implementing a Singleton pattern.
-     */
-    private static self $instance;
-
-    /**
-     * Singletons should not be cloneable.
-     */
-    private function __clone()
+    public function __construct()
     {
-    }
-
-    /**
-     * Singletons should not be restorable from strings.
-     *
-     * @throws Exception Cannot unserialize a singleton.
-     */
-    public function __wakeup()
-    {
-        throw new Exception('Cannot unserialize a singleton.');
-    }
-
-    /**
-     * This is the static method that controls the access to the singleton
-     * instance. On the first run, it creates a singleton object and places it
-     * into the static property. On subsequent runs, it returns the client existing
-     * object stored in the static property.
-     */
-    public static function get_instance(): self
-    {
-        if (! isset(self::$instance)) {
-            self::$instance = new self();
+        $cache_path = UtilsTheme::get_cache_path('blade');
+        if (! file_exists($cache_path)) {
+            wp_mkdir_p($cache_path);
         }
 
-        return self::$instance;
-    }
-
-    /**
-     * The Singleton's constructor should always be private to prevent direct
-     * construction calls with the `new` operator.
-     */
-    private function __construct()
-    {
-        if (! file_exists(CoreTemplate::get_instance()->blade_cache_path)) {
-            wp_mkdir_p(CoreTemplate::get_instance()->blade_cache_path);
-        }
-
-        $this->blade = new BladeBlade(CoreTemplate::get_instance()->template_dirs, CoreTemplate::get_instance()->blade_cache_path);
+        $this->bladeBlade = new BladeBlade(UtilsTheme::get_template_directories(), $cache_path);
     }
 
     /**
@@ -72,33 +35,31 @@ class Blade
      * @param string|array $paths The path(s) to the Blade template file(s).
      * @param array  $context The context data to pass to the template.
      * @param bool   $print Whether to print the output directly or return it.
-     * @return void|string
+     * @return string|null
      */
     public function render_template($paths, array $context = [], bool $print = true)
     {
         $view_name = null;
-        $template_dirs = CoreTemplate::get_instance()->template_dirs;
+        $template_dirs = UtilsTheme::get_template_directories();
         $resolve_view_name = function ($path) use ($template_dirs) {
-            foreach ($template_dirs as $dir) {
-                if (strpos($path, $dir) === 0) {
-                    $relative_path = substr($path, strlen($dir) + 1);
+            foreach ($template_dirs as $template_dir) {
+                if (str_starts_with($path, $template_dir)) {
+                    $relative_path = substr($path, strlen($template_dir) + 1);
                     return str_replace(['/', '.blade.php'], ['.', ''], $relative_path);
                 }
             }
+
             // If not absolute, treat as relative to template_dirs
-            if (substr($path, -10) === '.blade.php') {
-                $relative_path = $path;
-            } else {
-                $relative_path = $path . '.blade.php';
-            }
+            $relative_path = substr($path, -10) === '.blade.php' ? $path : $path . '.blade.php';
+
             $relative_path = ltrim($relative_path, '/');
             return str_replace(['/', '.blade.php'], ['.', ''], $relative_path);
         };
 
         if (is_array($paths)) {
-            foreach ($paths as $single_path) {
-                $view_name = $resolve_view_name($single_path);
-                if ($view_name) {
+            foreach ($paths as $path) {
+                $view_name = $resolve_view_name($path);
+                if ('' !== $view_name && '0' !== $view_name) {
                     break;
                 }
             }
@@ -106,17 +67,18 @@ class Blade
             $view_name = $resolve_view_name($paths);
         }
 
-        if ($view_name === null) {
+        if (null === $view_name) {
             // Fallback: use the basename without extension
             $view_name = pathinfo($paths, PATHINFO_FILENAME);
         }
 
-        $output = $this->blade->make($view_name, $context)->render();
+        $output = $this->bladeBlade->make($view_name, $context)->render();
 
         if ($print) {
             echo $output;
         } else {
             return $output;
         }
+        return null;
     }
 }
