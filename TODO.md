@@ -1,6 +1,6 @@
 # TODO
 
-### Core
+## Core
 
 - [x] Architecture
 - [x] Blocks support (via ACF Pro or Blockstudio)
@@ -14,7 +14,7 @@
     - [ ] Release
 
 
-### Adapt most of the Picostrap features
+## Adapt most of the Picostrap features
 - [ ] Hide unnecessary tags
 - [ ] Disable Comments
 - [ ] Keeps your head clean
@@ -23,7 +23,7 @@
 - [ ] Dark Mode
 
 
-### Add onboarding/setup wizard
+## Add onboarding/setup wizard
 - [ ] Welcome screen
 - [ ] Setup steps
     - [ ] Child theme (stub)
@@ -37,7 +37,7 @@
     - [ ] Configure theme settings
 
 
-### Documentation
+## Documentation
 - [ ] User guide
 - [ ] Developer guide
 
