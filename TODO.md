@@ -12,6 +12,7 @@
     - [ ] CI/CD pipeline (must transfer the repo to the LiveCanvas org first)
         - [ ] Release
 
+
 - [ ] Adapt most of the Picostrap features
     - [ ] Hide unnecessary tags
     - [ ] Disable Comments
@@ -19,6 +20,7 @@
     - [ ] Lightbox
     - [ ] Prefetch CSS
     - [ ] Dark Mode
+
 
 - [ ] Add onboarding/setup wizard
     - [ ] Welcome screen
@@ -33,9 +35,11 @@
         - [ ] Import demo content
         - [ ] Configure theme settings
 
+
 - [ ] Documentation
     - [ ] User guide
     - [ ] Developer guide
+
 
 - [ ] Ready-to-use child themes
     - [ ] DaisyUI based child theme
