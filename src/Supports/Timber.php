@@ -12,7 +12,6 @@ namespace Picowind\Supports;
 
 use Picowind\Core\Discovery\Attributes\Hook;
 use Picowind\Core\Discovery\Attributes\Service;
-use Picowind\Core\Render\Twig as RenderTwig;
 use Timber\Site;
 use Timber\Timber as TimberTimber;
 use Twig\Environment;
@@ -25,10 +24,8 @@ class Timber
 {
     private ?Site $site = null;
 
-    public function __construct(
-        // private RenderTwig $twigRenderer,
-    ) {
-        // Twig::get_instance();
+    public function __construct()
+    {
         TimberTimber::init();
     }
 
@@ -46,11 +43,6 @@ class Timber
         $context['primary_menu'] = TimberTimber::get_menu('primary');
         $context['footer_menu'] = TimberTimber::get_menu('footer');
         $context['options'] = function_exists('get_fields') ? get_fields('option') : [];
-
-        // // Require block functions files
-        // foreach (glob(get_template_directory() . '/blocks/*/functions.php') as $file) {
-        //     require_once $file;
-        // }
 
         return $context;
     }

@@ -65,6 +65,7 @@ class Blocks
         }
 
         foreach ($blocks as $block) {
+            // TODO: include the blocks' functions.php if exists in the same dir
             register_block_type($block);
         }
     }
