@@ -56,7 +56,7 @@ class Theme
         $handle = 'picowind:admin';
 
         $theme_dir = UtilsTheme::parent_dir() ?? UtilsTheme::current_dir();
-        $manifest = Vite\get_manifest($theme_dir . '/dist');
+        $manifest = Vite\get_manifest($theme_dir . '/build');
 
         wp_enqueue_script(
             $handle . '-i18n',
@@ -67,7 +67,7 @@ class Theme
         wp_set_script_translations($handle . '-i18n', 'picowind');
 
         Vite\enqueue_asset(
-            (UtilsTheme::parent_dir() ?? UtilsTheme::current_dir()) . '/dist',
+            (UtilsTheme::parent_dir() ?? UtilsTheme::current_dir()) . '/build',
             'assets/admin/main.ts',
             [
                 'handle' => $handle,
@@ -85,7 +85,7 @@ class Theme
             '_version' => $theme->get('Version'),
             '_wp_version' => get_bloginfo('version'),
             'assets' => [
-                'url' => $theme->get_template_directory_uri() . '/dist',
+                'url' => $theme->get_template_directory_uri() . '/build',
             ],
         ];
 

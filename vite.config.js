@@ -29,7 +29,7 @@ export default defineConfig({
             input: {
                 admin: 'assets/admin/main.ts',
             },
-            outDir: 'dist',
+            outDir: 'build',
         }),
         vue(),
         wp_scripts(),
