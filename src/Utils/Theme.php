@@ -95,16 +95,28 @@ class Theme
         return is_child_theme();
     }
 
+    /** Get current (active) theme directory
+     *
+     * @return string The current theme directory path
+     */
     public static function current_dir(): string
     {
         return get_stylesheet_directory();
     }
 
+    /** Get parent theme directory if this is a child theme
+     *
+     * @return string|null The parent theme directory path or null if not a child theme
+     */
     public static function parent_dir(): ?string
     {
         return is_child_theme() ? get_template_directory() : null;
     }
 
+    /** Get child theme directory if this is a child theme
+     *
+     * @return string|null The child theme directory path or null if not a child theme
+     */
     public static function child_dir(): ?string
     {
         return is_child_theme() ? get_stylesheet_directory() : null;

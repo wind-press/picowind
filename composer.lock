@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f6ec5e50ecdc35cc647f4bd7ae513980",
+    "content-hash": "4279c88cb65c2f5d29fa55ab77090cb5",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -758,6 +758,45 @@
                 "source": "https://github.com/laravel/framework"
             },
             "time": "2025-03-24T11:47:24+00:00"
+        },
+        {
+            "name": "kucrut/vite-for-wp",
+            "version": "v0.12.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kucrut/vite-for-wp.git",
+                "reference": "45ec51bbaedbc4e7335db3b3d4a4923962634fea"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kucrut/vite-for-wp/zipball/45ec51bbaedbc4e7335db3b3d4a4923962634fea",
+                "reference": "45ec51bbaedbc4e7335db3b3d4a4923962634fea",
+                "shasum": ""
+            },
+            "require-dev": {
+                "wp-coding-standards/wpcs": "^3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "vite-for-wp.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "Dzikri Aziz"
+                }
+            ],
+            "description": "Vite integration for WordPress plugins and themes development.",
+            "support": {
+                "issues": "https://github.com/kucrut/vite-for-wp/issues",
+                "source": "https://github.com/kucrut/vite-for-wp/tree/v0.12.0"
+            },
+            "time": "2025-06-26T03:15:40+00:00"
         },
         {
             "name": "nesbot/carbon",

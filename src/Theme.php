@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Picowind;
 
+use Exception;
 use Picowind\Core\Container\Container;
 use Picowind\Core\Discovery\CommandDiscovery;
 use Picowind\Core\Discovery\DiscoveryManager;
@@ -52,7 +53,7 @@ class Theme extends Site
         $this->container = new Container();
         $this->discover_components();
 
-        if (! $this->container instanceof \Picowind\Core\Container\Container) {
+        if (! $this->container instanceof Container) {
             throw new RuntimeException('Container initialization failed');
         }
 
@@ -76,7 +77,7 @@ class Theme extends Site
 
     private function discover_components(): void
     {
-        if (! $this->container instanceof \Picowind\Core\Container\Container) {
+        if (! $this->container instanceof Container) {
             throw new RuntimeException('Container not initialized');
         }
 
@@ -116,7 +117,7 @@ class Theme extends Site
         try {
             $timberService = $this->container->get(SupportsTimber::class);
             $timberService->setSite($this);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             // Fallback if Timber service not found
             error_log('Failed to get Timber service from container: ' . $exception->getMessage());
         }
