@@ -9,7 +9,7 @@
     - [x] Template engine
         - [x] Blade
         - [x] Twig (via Timber)
-    - [ ] CI/CD
+    - [ ] CI/CD pipeline (must transfer the repo to the LiveCanvas org first)
         - [ ] Release
 
 - [ ] Adapt most of the Picostrap features
