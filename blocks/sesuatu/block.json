@@ -1,9 +1,0 @@
-{
-   "$schema": "https://app.blockstudio.dev/schema",
-   "apiVersion": 2,
-   "name": "aaa/contoh-saja",
-   "title": "My Contoh",
-   "category": "blockstudio",
-   "icon": "star-filled",
-   "blockstudio": true
-}
