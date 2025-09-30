@@ -32,6 +32,7 @@
             - [ ] Blocks support via ACF Pro or Blockstudio
         - [ ] Import demo content
         - [ ] Configure theme settings
+
 - [ ] Documentation
     - [ ] User guide
     - [ ] Developer guide
