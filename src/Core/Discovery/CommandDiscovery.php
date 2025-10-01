@@ -41,6 +41,8 @@ final class CommandDiscovery implements Discovery
                 'name' => $classCommandAttribute->name ?? $this->generateCommandName($classReflector->getName()),
                 'description' => $classCommandAttribute->description ?? '',
                 'aliases' => $classCommandAttribute->aliases,
+                'synopsis' => $classCommandAttribute->synopsis,
+                'when' => $classCommandAttribute->when,
             ]);
         }
 
@@ -56,6 +58,8 @@ final class CommandDiscovery implements Discovery
                     'name' => $methodCommandAttribute->name ?? $this->generateMethodCommandName($classReflector->getName(), $methodReflector->getName()),
                     'description' => $methodCommandAttribute->description ?? '',
                     'aliases' => $methodCommandAttribute->aliases,
+                    'synopsis' => $methodCommandAttribute->synopsis,
+                    'when' => $methodCommandAttribute->when,
                 ]);
             }
         }
@@ -71,6 +75,8 @@ final class CommandDiscovery implements Discovery
                     'name' => $discoveryItem['name'],
                     'description' => $discoveryItem['description'],
                     'aliases' => $discoveryItem['aliases'],
+                    'synopsis' => $discoveryItem['synopsis'],
+                    'when' => $discoveryItem['when'],
                     'type' => $discoveryItem['type'],
                     'method' => $discoveryItem['method'],
                 ];
@@ -98,6 +104,8 @@ final class CommandDiscovery implements Discovery
         assert(is_string($data['name']));
         assert(is_string($data['description']));
         assert(is_array($data['aliases']));
+        assert(is_string($data['synopsis']) || $data['synopsis'] === null);
+        assert(is_string($data['when']) || $data['when'] === null);
         assert(is_string($data['type']));
         assert(is_string($data['method']));
 
@@ -105,6 +113,8 @@ final class CommandDiscovery implements Discovery
         $commandName = $data['name'];
         $description = $data['description'];
         $aliases = $data['aliases'];
+        $synopsis = $data['synopsis'];
+        $when = $data['when'];
         $type = $data['type'];
         $methodName = $data['method'];
 
@@ -139,6 +149,14 @@ final class CommandDiscovery implements Discovery
         $args = [
             'shortdesc' => $description,
         ];
+
+        if ($synopsis !== null) {
+            $args['synopsis'] = $synopsis;
+        }
+
+        if ($when !== null) {
+            $args['when'] = $when;
+        }
 
         WP_CLI::add_command($commandName, $callable, $args);
 

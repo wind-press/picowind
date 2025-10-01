@@ -14,12 +14,15 @@ use Picowind\Core\Discovery\Attributes\Hook;
 use Picowind\Core\Discovery\Attributes\Service;
 use Picowind\Utils\Theme as UtilsTheme;
 use Timber\Timber;
+use Twig\Environment;
+use Twig\TwigFunction;
 
 #[Service]
 class Twig
 {
-    public function __construct()
-    {
+    public function __construct(
+        private readonly Blade $blade
+    ) {
         $cache_path = UtilsTheme::get_cache_path('twig');
         if (! file_exists($cache_path)) {
             wp_mkdir_p($cache_path);
@@ -41,6 +44,11 @@ class Twig
     public function filter_env(array $options): array
     {
         $options['cache'] = UtilsTheme::get_cache_path('twig');
+
+        // Auto-reload in development (checks file modification time)
+        // Set to false in production for better performance
+        $options['auto_reload'] = defined('WP_DEBUG') && WP_DEBUG;
+
         return $options;
     }
 
@@ -61,5 +69,30 @@ class Twig
             return $output;
         }
         return null;
+    }
+
+    /**
+     * Renders a Blade template from within Twig.
+     * Mimics Twig's include behavior with context passing.
+     *
+     * @param array $context The current Twig context (automatically passed by needs_context)
+     * @param string $template The Blade template path
+     * @param array $with Additional variables to pass to the template
+     * @param bool $only Whether to pass only the 'with' variables (no parent context)
+     * @return string The rendered Blade template
+     */
+    public function renderBladeTemplate(array $context, string $template, array $with = [], bool $only = false): string
+    {
+        // Determine which variables to pass
+        if ($only) {
+            // Only pass the 'with' variables
+            $finalContext = $with;
+        } else {
+            // Merge parent context with 'with' variables (with variables take precedence)
+            $finalContext = array_merge($context, $with);
+        }
+
+        // Render the Blade template without printing
+        return $this->blade->render_template($template, $finalContext, false) ?? '';
     }
 }

@@ -99,6 +99,7 @@ final class DiscoveryManager
             new ServiceDiscovery($this->container),
             new HookDiscovery($this->container),
             new CommandDiscovery($this->container),
+            new ControllerDiscovery($this->container),
         ];
     }
 

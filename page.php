@@ -16,4 +16,15 @@ $context = context();
 
 $timber_post = Timber::get_post();
 $context['post'] = $timber_post;
-render(['page-' . $timber_post->post_name . '.twig', 'page.twig'], $context, 'twig');
+
+render(
+    [
+        'page-' . $timber_post->post_name . '.twig',
+        'page-' . $timber_post->post_name . '.blade.php',
+        'page-' . $timber_post->post_name . '.php',
+        'page.twig',
+        'page.blade.php',
+        'page.php',
+    ],
+    $context,
+);

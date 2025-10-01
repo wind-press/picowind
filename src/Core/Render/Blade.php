@@ -18,6 +18,7 @@ use Picowind\Utils\Theme as UtilsTheme;
 class Blade
 {
     private readonly ?BladeBlade $bladeBlade;
+    private ?Twig $twig = null;
 
     public function __construct()
     {
@@ -27,6 +28,32 @@ class Blade
         }
 
         $this->bladeBlade = new BladeBlade(UtilsTheme::get_template_directories(), $cache_path);
+    }
+
+    public function setTwigRenderer(Twig $twig): void
+    {
+        $this->twig = $twig;
+        $this->registerTwigDirective();
+    }
+
+    private function registerTwigDirective(): void
+    {
+        $this->bladeBlade->directive('twig', function ($expression) {
+            // Wrap the expression in array brackets to handle multiple arguments
+            return "<?php
+                \$__twigRenderer = \\Picowind\\Theme::get_instance()->container()->get(\\Picowind\\Core\\Render\\Twig::class);
+                \$__twigArgs = [{$expression}];
+                \$__twigTemplate = isset(\$__twigArgs[0]) ? \$__twigArgs[0] : '';
+                \$__twigExtra = isset(\$__twigArgs[1]) ? \$__twigArgs[1] : [];
+                if (!empty(\$__twigTemplate)) {
+                    \$__twigContext = array_filter(get_defined_vars(), function(\$k) {
+                        return substr(\$k, 0, 2) !== '__';
+                    }, ARRAY_FILTER_USE_KEY);
+                    \$__twigContext = array_merge(\$__twigContext, \$__twigExtra);
+                    echo \$__twigRenderer->render_template(\$__twigTemplate, \$__twigContext, false);
+                }
+            ?>";
+        });
     }
 
     /**
