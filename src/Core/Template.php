@@ -29,7 +29,6 @@ class Template
         private readonly RenderBlade $renderBlade,
         private readonly RenderLatte $renderLatte,
     ) {
-        $this->renderBlade->setTwigRenderer($this->renderTwig);
     }
 
     /**

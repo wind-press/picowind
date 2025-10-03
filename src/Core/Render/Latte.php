@@ -11,8 +11,13 @@ declare(strict_types=1);
 namespace Picowind\Core\Render;
 
 use Latte\Engine;
+use Latte\Runtime\Html;
 use Picowind\Core\Discovery\Attributes\Service;
+use Picowind\Core\Render\Latte\LatteExtension;
+use Picowind\Core\Render\Latte\MultiDirectoryLoader;
 use Picowind\Utils\Theme as UtilsTheme;
+
+use function Picowind\render;
 
 #[Service]
 class Latte
@@ -29,10 +34,39 @@ class Latte
         $this->latte = new Engine();
         $this->latte->setTempDirectory($cache_path);
 
+        // Configure custom loader to support multiple template directories with fallback
+        $template_dirs = UtilsTheme::get_template_directories();
+        $loader = new MultiDirectoryLoader($template_dirs);
+        $this->latte->setLoader($loader);
+
         // Auto-refresh in development
         if (defined('WP_DEBUG') && WP_DEBUG) {
             $this->latte->setAutoRefresh(true);
         }
+
+        // Register custom extension with tags and functions
+        $this->latte->addExtension(new LatteExtension());
+
+        $this->registerTwigFunction();
+        $this->registerBladeFunction();
+    }
+
+    private function registerTwigFunction(): void
+    {
+        // Register function syntax: {twig('template.twig', [vars])}
+        $this->latte->addFunction('twig', function (string $template, array $context = []) {
+            $output = render($template, $context, 'twig', false) ?? '';
+            return new Html($output);
+        });
+    }
+
+    private function registerBladeFunction(): void
+    {
+        // Register function syntax: {blade('template.blade.php', [vars])}
+        $this->latte->addFunction('blade', function (string $template, array $context = []) {
+            $output = render($template, $context, 'blade', false) ?? '';
+            return new Html($output);
+        });
     }
 
     /**
@@ -45,42 +79,32 @@ class Latte
      */
     public function render_template($paths, array $context = [], bool $print = true)
     {
-        $template_path = null;
+        $template_name = null;
         $template_dirs = UtilsTheme::get_template_directories();
 
-        $resolve_template = function ($path) use ($template_dirs) {
-            // If absolute path exists, use it
-            if (file_exists($path)) {
-                return $path;
-            }
+        // Find which template exists - store the relative name, not absolute path
+        $templates = is_array($paths) ? $paths : [$paths];
 
-            // Try relative to each template directory
+        foreach ($templates as $path) {
             foreach ($template_dirs as $dir) {
                 $full_path = rtrim($dir, '/') . '/' . ltrim($path, '/');
                 if (file_exists($full_path)) {
-                    return $full_path;
+                    $template_name = $path; // Use the relative path
+                    break 2;
                 }
             }
-
-            return null;
-        };
-
-        if (is_array($paths)) {
-            foreach ($paths as $path) {
-                $template_path = $resolve_template($path);
-                if (null !== $template_path) {
-                    break;
-                }
-            }
-        } else {
-            $template_path = $resolve_template($paths);
         }
 
-        if (null === $template_path) {
-            throw new \RuntimeException("Latte template not found: " . (is_array($paths) ? implode(', ', $paths) : $paths));
+        if (null === $template_name) {
+            throw new \RuntimeException('Latte template not found: ' . (is_array($paths) ? implode(', ', $paths) : $paths));
         }
 
-        $output = $this->latte->renderToString($template_path, $context);
+        // Render with the relative template name - MultiDirectoryLoader will resolve it
+        try {
+            $output = $this->latte->renderToString($template_name, $context);
+        } catch (\Throwable $e) {
+            throw $e;
+        }
 
         if ($print) {
             echo $output;

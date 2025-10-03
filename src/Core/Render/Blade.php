@@ -14,11 +14,12 @@ use Jenssegers\Blade\Blade as BladeBlade;
 use Picowind\Core\Discovery\Attributes\Service;
 use Picowind\Utils\Theme as UtilsTheme;
 
+use function Picowind\render;
+
 #[Service]
 class Blade
 {
     private readonly ?BladeBlade $bladeBlade;
-    private ?Twig $twig = null;
 
     public function __construct()
     {
@@ -28,12 +29,8 @@ class Blade
         }
 
         $this->bladeBlade = new BladeBlade(UtilsTheme::get_template_directories(), $cache_path);
-    }
-
-    public function setTwigRenderer(Twig $twig): void
-    {
-        $this->twig = $twig;
         $this->registerTwigDirective();
+        $this->registerLatteDirective();
     }
 
     private function registerTwigDirective(): void
@@ -41,7 +38,6 @@ class Blade
         $this->bladeBlade->directive('twig', function ($expression) {
             // Wrap the expression in array brackets to handle multiple arguments
             return "<?php
-                \$__twigRenderer = \\Picowind\\Theme::get_instance()->container()->get(\\Picowind\\Core\\Render\\Twig::class);
                 \$__twigArgs = [{$expression}];
                 \$__twigTemplate = isset(\$__twigArgs[0]) ? \$__twigArgs[0] : '';
                 \$__twigExtra = isset(\$__twigArgs[1]) ? \$__twigArgs[1] : [];
@@ -50,7 +46,26 @@ class Blade
                         return substr(\$k, 0, 2) !== '__';
                     }, ARRAY_FILTER_USE_KEY);
                     \$__twigContext = array_merge(\$__twigContext, \$__twigExtra);
-                    echo \$__twigRenderer->render_template(\$__twigTemplate, \$__twigContext, false);
+                    echo \\Picowind\\render(\$__twigTemplate, \$__twigContext, 'twig', false);
+                }
+            ?>";
+        });
+    }
+
+    private function registerLatteDirective(): void
+    {
+        $this->bladeBlade->directive('latte', function ($expression) {
+            // Wrap the expression in array brackets to handle multiple arguments
+            return "<?php
+                \$__latteArgs = [{$expression}];
+                \$__latteTemplate = isset(\$__latteArgs[0]) ? \$__latteArgs[0] : '';
+                \$__latteExtra = isset(\$__latteArgs[1]) ? \$__latteArgs[1] : [];
+                if (!empty(\$__latteTemplate)) {
+                    \$__latteContext = array_filter(get_defined_vars(), function(\$k) {
+                        return substr(\$k, 0, 2) !== '__';
+                    }, ARRAY_FILTER_USE_KEY);
+                    \$__latteContext = array_merge(\$__latteContext, \$__latteExtra);
+                    echo \\Picowind\\render(\$__latteTemplate, \$__latteContext, 'latte', false);
                 }
             ?>";
         });

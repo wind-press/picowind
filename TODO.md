@@ -10,6 +10,7 @@
 - [x] Template engine
     - [x] Blade
     - [x] Twig (via Timber)
+    - [x] Latte
 - [ ] CI/CD pipeline (must transfer the repo to the LiveCanvas org first)
     - [ ] Release
 - [ ] Adapt the Picostrap template/views
@@ -45,4 +46,4 @@
 
 ## Ready-to-use child themes
 - [ ] DaisyUI based child theme
-- [ ] Bootstrap 5 based child theme
+- [ ] Bootstrap 5 based child theme (Picostrap)

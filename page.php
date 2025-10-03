@@ -20,9 +20,11 @@ $context['post'] = $timber_post;
 render(
     [
         'page-' . $timber_post->post_name . '.twig',
+        'page-' . $timber_post->post_name . '.latte',
         'page-' . $timber_post->post_name . '.blade.php',
         'page-' . $timber_post->post_name . '.php',
         'page.twig',
+        'page.latte',
         'page.blade.php',
         'page.php',
     ],

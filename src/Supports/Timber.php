@@ -14,6 +14,7 @@ use Picowind\Core\Discovery\Attributes\Hook;
 use Picowind\Core\Discovery\Attributes\Service;
 use Picowind\Core\Render\Twig as RenderTwig;
 use Picowind\Core\Render\Twig\BladeTokenParser;
+use Picowind\Core\Render\Twig\LatteTokenParser;
 use Timber\Site;
 use Timber\Timber as TimberTimber;
 use Twig\Environment;
@@ -57,6 +58,8 @@ class Timber
         $twigEnvironment = $this->add_inline_svg_to_twig($twigEnvironment);
         $twigEnvironment = $this->add_blade_function_to_twig($twigEnvironment);
         $twigEnvironment = $this->add_blade_tag_to_twig($twigEnvironment);
+        $twigEnvironment = $this->add_latte_function_to_twig($twigEnvironment);
+        $twigEnvironment = $this->add_latte_tag_to_twig($twigEnvironment);
         return $twigEnvironment;
     }
 
@@ -83,6 +86,27 @@ class Timber
     public function add_blade_tag_to_twig(Environment $twigEnvironment): Environment
     {
         $twigEnvironment->addTokenParser(new BladeTokenParser());
+        return $twigEnvironment;
+    }
+
+    public function add_latte_function_to_twig(Environment $twigEnvironment): Environment
+    {
+        $twigEnvironment->addFunction(
+            new TwigFunction(
+                'latte',
+                $this->renderTwig->renderLatteTemplate(...),
+                [
+                    'is_safe' => ['html'],
+                    'needs_context' => true,
+                ]
+            )
+        );
+        return $twigEnvironment;
+    }
+
+    public function add_latte_tag_to_twig(Environment $twigEnvironment): Environment
+    {
+        $twigEnvironment->addTokenParser(new LatteTokenParser());
         return $twigEnvironment;
     }
 

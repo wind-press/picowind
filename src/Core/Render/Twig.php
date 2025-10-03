@@ -17,6 +17,8 @@ use Timber\Timber;
 use Twig\Environment;
 use Twig\TwigFunction;
 
+use function Picowind\render;
+
 #[Service]
 class Twig
 {
@@ -93,6 +95,31 @@ class Twig
         }
 
         // Render the Blade template without printing
-        return $this->blade->render_template($template, $finalContext, false) ?? '';
+        return render($template, $finalContext, 'blade', false) ?? '';
+    }
+
+    /**
+     * Renders a Latte template from within Twig.
+     * Mimics Twig's include behavior with context passing.
+     *
+     * @param array $context The current Twig context (automatically passed by needs_context)
+     * @param string $template The Latte template path
+     * @param array $with Additional variables to pass to the template
+     * @param bool $only Whether to pass only the 'with' variables (no parent context)
+     * @return string The rendered Latte template
+     */
+    public function renderLatteTemplate(array $context, string $template, array $with = [], bool $only = false): string
+    {
+        // Determine which variables to pass
+        if ($only) {
+            // Only pass the 'with' variables
+            $finalContext = $with;
+        } else {
+            // Merge parent context with 'with' variables (with variables take precedence)
+            $finalContext = array_merge($context, $with);
+        }
+
+        // Render the Latte template without printing
+        return render($template, $finalContext, 'latte', false) ?? '';
     }
 }
