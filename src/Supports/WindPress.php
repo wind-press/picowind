@@ -116,7 +116,7 @@ class WindPress
             ->followLinks()
             ->name(['*.css', '*.js']);
 
-        do_action('a!picowind_sfs_handler_get:get_entries.finder', $finder);
+        do_action('a!picowind/supports/windpress:get_entries.finder', $finder);
 
         foreach ($finder as $file) {
             if (! is_readable($file->getPathname())) {

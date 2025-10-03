@@ -12,6 +12,7 @@ namespace Picowind\Core;
 
 use Picowind\Core\Discovery\Attributes\Service;
 use Picowind\Core\Render\Blade as RenderBlade;
+use Picowind\Core\Render\Latte as RenderLatte;
 use Picowind\Core\Render\Twig as RenderTwig;
 use Picowind\Exceptions\UnsupportedRenderEngineException;
 
@@ -26,6 +27,7 @@ class Template
     public function __construct(
         private readonly RenderTwig $renderTwig,
         private readonly RenderBlade $renderBlade,
+        private readonly RenderLatte $renderLatte,
     ) {
         $this->renderBlade->setTwigRenderer($this->renderTwig);
     }
@@ -33,17 +35,33 @@ class Template
     /**
      * @param string|array $paths Template path(s) including file extension
      * @param array $context Context data to pass to template
-     * @param ?string $engine Engine to use ('twig', 'blade'). Auto-detected if null
+     * @param ?string $engine Engine to use ('twig', 'blade', 'latte', etc). Auto-detected if null
      * @param ?bool $print Whether to print output. Default true
      * @return void|string Rendered output if $print is false, otherwise void
      */
     public function render_template(string|array $paths, array $context = [], ?string $engine = null, ?bool $print = true): ?string
     {
+        do_action('a!picowind/template/render:before', $paths, $context, $engine, $print);
+
+        // Allow complete override of rendering logic
+        $customRender = apply_filters('f!picowind/template/render:output', null, $paths, $context, $engine);
+        if (null !== $customRender) {
+            if ($print) {
+                echo $customRender;
+                do_action('a!picowind/template/render:after', $customRender, $paths, $context, $engine);
+                return null;
+            }
+            do_action('a!picowind/template/render:after', $customRender, $paths, $context, $engine);
+            return $customRender;
+        }
+
         // Handle array of paths for fallback support
         if (is_array($paths)) {
             if (null !== $engine) {
                 $paths = array_map(fn ($single_path) => $this->process_path_extension($single_path, $engine), $paths);
-                return $this->renderWithEngine($engine, $paths, $context, $print);
+                $output = $this->renderWithEngine($engine, $paths, $context);
+                do_action('a!picowind/template/render:after', $output, $paths, $context, $engine);
+                return $output;
             }
 
             $errors = [];
@@ -54,25 +72,35 @@ class Template
                     $output = $this->renderWithEngine($detectedEngine, $processedPath, $context, false);
 
                     if (empty($output) || ! is_string($output)) {
-                        $errors[] = "{$singlePath}: Rendering returned empty output.";
+                        $engineInfo = isset($detectedEngine) && $detectedEngine ? " [{$detectedEngine}]" : '';
+                        $errors[] = "{$singlePath}:{$engineInfo} Rendering returned empty output.";
                         continue;
                     }
 
                     if ($print) {
                         echo $output;
+                        do_action('a!picowind/template/render:after', $output, $paths, $context, $detectedEngine);
                         return null;
                     }
 
+                    do_action('a!picowind/template/render:after', $output, $paths, $context, $detectedEngine);
                     return $output;
                 } catch (\Exception $e) {
-                    $errors[] = "{$singlePath}: {$e->getMessage()}";
+                    $engineInfo = isset($detectedEngine) && $detectedEngine ? " [{$detectedEngine}]" : '';
+                    $errors[] = "{$singlePath}:{$engineInfo} {$e->getMessage()}";
                     continue;
                 }
             }
 
             throw new UnsupportedRenderEngineException(
                 'mixed',
-                'No template could be rendered. Tried: ' . implode(', ', $errors),
+                "\nNo template could be rendered. Tried:\n"
+                . implode("\n", array_map(
+                    fn ($err, $i) => "#{$i} {$err}",
+                    $errors,
+                    array_keys($errors),
+                ))
+                . "\n",
             );
         }
 
@@ -81,26 +109,46 @@ class Template
         }
 
         $paths = $this->process_path_extension($paths, $engine);
-        return $this->renderWithEngine($engine, $paths, $context, $print);
+        $output = $this->renderWithEngine($engine, $paths, $context);
+
+        if ($print) {
+            echo $output;
+            do_action('a!picowind/template/render:after', $output, $paths, $context, $engine);
+            return null;
+        }
+
+        do_action('a!picowind/template/render:after', $output, $paths, $context, $engine);
+        return $output;
     }
 
     private function detectEngineFromPath(string $path): string
     {
         $ext = pathinfo($path, PATHINFO_EXTENSION);
 
-        return match ($ext) {
+        $engine = match ($ext) {
             'twig' => 'twig',
+            'latte' => 'latte',
             'php' => 'blade',
             '?' => throw new UnsupportedRenderEngineException('?', 'Cannot determine engine from `.?` extension.'),
             default => 'twig',
         };
+
+        // Allow custom engine detection based on file extension
+        return apply_filters('f!picowind/template/detect:engine', $engine, $path, $ext);
     }
 
-    private function renderWithEngine(string $engine, string|array $paths, array $context, bool $print)
+    private function renderWithEngine(string $engine, string|array $paths, array $context)
     {
+        // Allow custom rendering engines via filter
+        $customEngineOutput = apply_filters('f!picowind/template/engine:render', null, $engine, $paths, $context);
+        if (null !== $customEngineOutput) {
+            return $customEngineOutput;
+        }
+
         return match ($engine) {
-            'twig' => $this->renderTwig->render_template($paths, $context, $print),
-            'blade' => $this->renderBlade->render_template($paths, $context, $print),
+            'twig' => $this->renderTwig->render_template($paths, $context, false),
+            'blade' => $this->renderBlade->render_template($paths, $context, false),
+            'latte' => $this->renderLatte->render_template($paths, $context, false),
             default => throw new UnsupportedRenderEngineException($engine),
         };
     }
@@ -110,21 +158,29 @@ class Template
         // Handle `.?` extension placeholder - replace with actual extension
         if (str_ends_with($path, '.?')) {
             $path = substr($path, 0, -2);
-            $path .= match ($engine) {
+            $extension = match ($engine) {
                 'twig' => '.twig',
                 'blade' => '.blade.php',
+                'latte' => '.latte',
                 default => throw new UnsupportedRenderEngineException($engine),
             };
+            // Allow custom extension mapping for custom engines
+            $extension = apply_filters('f!picowind/template/engine:extension', $extension, $engine);
+            $path .= $extension;
         }
 
         // Add missing extension based on engine
         $ext = pathinfo($path, PATHINFO_EXTENSION);
         if ('' === $ext) {
-            $path .= match ($engine) {
+            $extension = match ($engine) {
                 'twig' => '.twig',
                 'blade' => '.blade.php',
+                'latte' => '.latte',
                 default => throw new UnsupportedRenderEngineException($engine),
             };
+            // Allow custom extension mapping for custom engines
+            $extension = apply_filters('f!picowind/template/engine:extension', $extension, $engine);
+            $path .= $extension;
         }
 
         return $path;

@@ -52,9 +52,9 @@ class Blocks
                 if (file_exists($dir->getPathname() . '/block.json')) {
                     $block_json = json_decode(file_get_contents($dir->getPathname() . '/block.json'), true);
 
-                    do_action('picowind/blocks/register:before', $block_json, $dir->getPathname());
+                    do_action('a!picowind/blocks/register:before', $block_json, $dir->getPathname());
 
-                    $shouldRegister = apply_filters('picowind/blocks/register:should-register', true, $block_json, $dir->getPathname());
+                    $shouldRegister = apply_filters('f!picowind/blocks/register:should-register', true, $block_json, $dir->getPathname());
                     if (! $shouldRegister) {
                         continue;
                     }
@@ -171,7 +171,7 @@ class Blocks
          * @param string $raw  The original string.
          * @param string $glue The separator used to join the string into a slug.
          */
-        return apply_filters('picowind/blocks/name_slugify', $slug, $raw, $glue);
+        return apply_filters('f!picowind/blocks/name:slugify', $slug, $raw, $glue);
     }
 
     #[Hook('block_categories_all', 'filter')]

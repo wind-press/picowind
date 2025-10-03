@@ -18,7 +18,7 @@ use Timber\Timber;
  *
  * @param string|array $paths The path to the template file(s) including the file extension.
  * @param array  $context The context data to pass to the template.
- * @param ?string $engine The template engine to use ('twig', 'blade', 'php'). Default is 'twig' or determined by file extension.
+ * @param ?string $engine The template engine to use ('twig', 'blade', 'php', etc). Default is 'twig' or determined by file extension.
  * @param ?bool $print Whether to print the rendered template. Default is true.
  * @return void|string The rendered template output if $print is false, otherwise void.
  */

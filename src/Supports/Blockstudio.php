@@ -35,7 +35,7 @@ class Blockstudio
         return false;
     }
 
-    #[Hook('picowind/blocks/register:should-register', 'filter', 10, 3)]
+    #[Hook('f!picowind/blocks/register:should-register', 'filter', 10, 3)]
     public function should_register(bool $should_register, array $block_json, string $dir_path): bool
     {
         if (isset($block_json['blockstudio']) && (true !== $block_json['blockstudio'] || 1 !== $block_json['blockstudio'])) {
@@ -45,7 +45,7 @@ class Blockstudio
         return $should_register;
     }
 
-    #[Hook('picowind/blocks/register:before', 'action', 10, 2)]
+    #[Hook('a!picowind/blocks/register:before', 'action', 10, 2)]
     public function register_blocks(array $block_json, string $dir_path): void
     {
         if (! class_exists(Build::class)) {

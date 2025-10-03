@@ -63,7 +63,7 @@ class Theme extends Site
         $this->setup_timber();
         $this->booted = true;
 
-        do_action('picowind/core:theme.booted', $this);
+        do_action('a!picowind/core/theme:booted', $this);
     }
 
     public function container(): Container

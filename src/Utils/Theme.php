@@ -35,6 +35,7 @@ class Theme
     public const CACHE_DIRECTORIES = [
         'twig' => 'picowind/cache/twig',
         'blade' => 'picowind/cache/blade',
+        'latte' => 'picowind/cache/latte',
     ];
 
     /**

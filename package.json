@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "volta": {
-    "node": "22.9.0"
+    "node": "24.9.0"
   },
   "scripts": {
     "dev": "vite",
