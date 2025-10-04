@@ -12,6 +12,8 @@ namespace Picowind\Core\Render;
 
 use Picowind\Core\Discovery\Attributes\Hook;
 use Picowind\Core\Discovery\Attributes\Service;
+use Picowind\Core\Render\Twig\BladeTokenParser;
+use Picowind\Core\Render\Twig\LatteTokenParser;
 use Picowind\Utils\Theme as UtilsTheme;
 use Timber\Timber;
 use Twig\Environment;
@@ -22,9 +24,8 @@ use function Picowind\render;
 #[Service]
 class Twig
 {
-    public function __construct(
-        private readonly Blade $blade
-    ) {
+    public function __construct()
+    {
         $cache_path = UtilsTheme::get_cache_path('twig');
         if (! file_exists($cache_path)) {
             wp_mkdir_p($cache_path);
@@ -121,5 +122,51 @@ class Twig
 
         // Render the Latte template without printing
         return render($template, $finalContext, 'latte', false) ?? '';
+    }
+
+    #[Hook('timber/twig', 'filter')]
+    public function add_blade_function_to_twig(Environment $twigEnvironment): Environment
+    {
+        $twigEnvironment->addFunction(
+            new TwigFunction(
+                'blade',
+                $this->renderBladeTemplate(...),
+                [
+                    'is_safe' => ['html'],
+                    'needs_context' => true,
+                ],
+            ),
+        );
+        return $twigEnvironment;
+    }
+
+    #[Hook('timber/twig', 'filter')]
+    public function add_blade_tag_to_twig(Environment $twigEnvironment): Environment
+    {
+        $twigEnvironment->addTokenParser(new BladeTokenParser());
+        return $twigEnvironment;
+    }
+
+    #[Hook('timber/twig', 'filter')]
+    public function add_latte_function_to_twig(Environment $twigEnvironment): Environment
+    {
+        $twigEnvironment->addFunction(
+            new TwigFunction(
+                'latte',
+                $this->renderLatteTemplate(...),
+                [
+                    'is_safe' => ['html'],
+                    'needs_context' => true,
+                ],
+            ),
+        );
+        return $twigEnvironment;
+    }
+
+    #[Hook('timber/twig', 'filter')]
+    public function add_latte_tag_to_twig(Environment $twigEnvironment): Environment
+    {
+        $twigEnvironment->addTokenParser(new LatteTokenParser());
+        return $twigEnvironment;
     }
 }

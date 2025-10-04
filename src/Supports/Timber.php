@@ -12,9 +12,6 @@ namespace Picowind\Supports;
 
 use Picowind\Core\Discovery\Attributes\Hook;
 use Picowind\Core\Discovery\Attributes\Service;
-use Picowind\Core\Render\Twig as RenderTwig;
-use Picowind\Core\Render\Twig\BladeTokenParser;
-use Picowind\Core\Render\Twig\LatteTokenParser;
 use Timber\Site;
 use Timber\Timber as TimberTimber;
 use Twig\Environment;
@@ -27,9 +24,8 @@ class Timber
 {
     private ?Site $site = null;
 
-    public function __construct(
-        private readonly RenderTwig $renderTwig
-    ) {
+    public function __construct()
+    {
         TimberTimber::init();
     }
 
@@ -52,64 +48,6 @@ class Timber
     }
 
     #[Hook('timber/twig', 'filter')]
-    public function setup_twig(Environment $twigEnvironment): Environment
-    {
-        $twigEnvironment = $this->add_to_twig($twigEnvironment);
-        $twigEnvironment = $this->add_inline_svg_to_twig($twigEnvironment);
-        $twigEnvironment = $this->add_blade_function_to_twig($twigEnvironment);
-        $twigEnvironment = $this->add_blade_tag_to_twig($twigEnvironment);
-        $twigEnvironment = $this->add_latte_function_to_twig($twigEnvironment);
-        $twigEnvironment = $this->add_latte_tag_to_twig($twigEnvironment);
-        return $twigEnvironment;
-    }
-
-    public function add_to_twig(Environment $twigEnvironment): Environment
-    {
-        return $twigEnvironment;
-    }
-
-    public function add_blade_function_to_twig(Environment $twigEnvironment): Environment
-    {
-        $twigEnvironment->addFunction(
-            new TwigFunction(
-                'blade',
-                $this->renderTwig->renderBladeTemplate(...),
-                [
-                    'is_safe' => ['html'],
-                    'needs_context' => true,
-                ]
-            )
-        );
-        return $twigEnvironment;
-    }
-
-    public function add_blade_tag_to_twig(Environment $twigEnvironment): Environment
-    {
-        $twigEnvironment->addTokenParser(new BladeTokenParser());
-        return $twigEnvironment;
-    }
-
-    public function add_latte_function_to_twig(Environment $twigEnvironment): Environment
-    {
-        $twigEnvironment->addFunction(
-            new TwigFunction(
-                'latte',
-                $this->renderTwig->renderLatteTemplate(...),
-                [
-                    'is_safe' => ['html'],
-                    'needs_context' => true,
-                ]
-            )
-        );
-        return $twigEnvironment;
-    }
-
-    public function add_latte_tag_to_twig(Environment $twigEnvironment): Environment
-    {
-        $twigEnvironment->addTokenParser(new LatteTokenParser());
-        return $twigEnvironment;
-    }
-
     public function add_inline_svg_to_twig(Environment $twigEnvironment): Environment
     {
         $twigEnvironment->addFunction(new TwigFunction('inline_svg', $this->inline_svg(...), ['is_safe' => ['html']]));
