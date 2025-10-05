@@ -1,21 +1,21 @@
+import path from 'path';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { v4wp } from '@kucrut/vite-for-wp';
 import { wp_scripts } from '@kucrut/vite-for-wp/plugins';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 // import { nodePolyfills } from 'vite-plugin-node-polyfills';
 // import wasm from 'vite-plugin-wasm';
 // import topLevelAwait from 'vite-plugin-top-level-await';
-import path from 'path';
 // import svgr from 'vite-plugin-svgr';
 // import Icons from 'unplugin-icons/vite';
 // import IconsResolver from 'unplugin-icons/resolver';
 // import httpsImports from 'vite-plugin-https-imports';
-// import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig({
-    define: {
-        __dirname: JSON.stringify('/'),
-    },
+    // define: {
+    //     __dirname: JSON.stringify('/'),
+    // },
     plugins: [
         // wasm(),
         // topLevelAwait(),
@@ -27,9 +27,9 @@ export default defineConfig({
         // }),
         v4wp({
             input: {
-                admin: 'assets/admin/main.ts',
+                admin: 'resources/admin/main.ts',
             },
-            outDir: 'build',
+            outDir: 'public/build',
         }),
         vue(),
         wp_scripts(),
@@ -50,14 +50,14 @@ export default defineConfig({
         //         return undefined;
         //     };
         // }),
-        // viteStaticCopy({
-        //     targets: [
-        //         {
-        //             src: 'assets/wp-i18n.js',
-        //             dest: './'
-        //         }
-        //     ]
-        // })
+        viteStaticCopy({
+            targets: [
+                {
+                    src: 'resources/wp-i18n.js',
+                    dest: './'
+                }
+            ]
+        })
     ],
     build: {
         sourcemap: false,

@@ -92,11 +92,11 @@ class WindPress
         $existing_dirs = [];
 
         $asset_paths = [
-            UtilsTheme::current_dir() . '/assets/styles',
+            UtilsTheme::current_dir() . '/public/styles',
         ];
 
         if (UtilsTheme::is_child_theme()) {
-            $asset_paths[] = UtilsTheme::parent_dir() . '/assets/styles';
+            $asset_paths[] = UtilsTheme::parent_dir() . '/public/styles';
         }
 
         foreach ($asset_paths as $asset_path) {
@@ -168,12 +168,12 @@ class WindPress
             if (! UtilsTheme::is_child_theme()) {
                 return; // No child theme to save to
             }
-            $data_dir = UtilsTheme::current_dir() . '/assets/styles';
+            $data_dir = UtilsTheme::current_dir() . '/public/styles';
             $_relativePath = substr((string) $entry['relative_path'], strlen('@picowind/'));
         } elseif ('picowind-parent' === $handler) {
             $data_dir = UtilsTheme::is_child_theme()
-                ? UtilsTheme::parent_dir() . '/assets/styles'
-                : UtilsTheme::current_dir() . '/assets/styles';
+                ? UtilsTheme::parent_dir() . '/public/styles'
+                : UtilsTheme::current_dir() . '/public/styles';
             $_relativePath = substr((string) $entry['relative_path'], strlen('@picowind/'));
         } else {
             return; // Unknown handler

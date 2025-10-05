@@ -56,19 +56,19 @@ class Theme
         $handle = 'picowind:admin';
 
         $theme_dir = UtilsTheme::parent_dir() ?? UtilsTheme::current_dir();
-        $manifest = Vite\get_manifest($theme_dir . '/build');
+        $manifest = Vite\get_manifest($theme_dir . '/public/build');
 
         wp_enqueue_script(
             $handle . '-i18n',
-            $manifest->is_dev ? Vite\generate_development_asset_src($manifest, 'assets/admin/wp-i18n.js') : Vite\prepare_asset_url($manifest->dir) . '/wp-i18n.js',
+            $manifest->is_dev ? Vite\generate_development_asset_src($manifest, 'resources/admin/wp-i18n.js') : Vite\prepare_asset_url($manifest->dir) . '/wp-i18n.js',
             ['wp-i18n'],
             null,
         );
         wp_set_script_translations($handle . '-i18n', 'picowind');
 
         Vite\enqueue_asset(
-            (UtilsTheme::parent_dir() ?? UtilsTheme::current_dir()) . '/build',
-            'assets/admin/main.ts',
+            (UtilsTheme::parent_dir() ?? UtilsTheme::current_dir()) . '/public/build',
+            'resources/admin/main.ts',
             [
                 'handle' => $handle,
                 'in_footer' => true,
@@ -85,7 +85,7 @@ class Theme
             '_version' => $theme->get('Version'),
             '_wp_version' => get_bloginfo('version'),
             'assets' => [
-                'url' => $theme->get_template_directory_uri() . '/build',
+                'url' => $theme->get_template_directory_uri() . '/public/build',
             ],
         ];
 

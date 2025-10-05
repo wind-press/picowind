@@ -37,11 +37,11 @@
 						{% if is_svg %}
 							{# Monochrome by default: icon color follows currentColor (anchor) #}
 							<span class="inline-block w-6 h-6">
-								{{ inline_svg(icon, {
+								{# {{ inline_svg(icon, {
 									class: 'w-6 h-6 fill-current',
 									monochrome: not preserve,
 									title: title
-								}) }}
+								}) }} #}
 							</span>
 						{% elseif icon %}
 							<img
