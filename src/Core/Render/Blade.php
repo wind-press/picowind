@@ -31,6 +31,7 @@ class Blade
         $this->bladeBlade = new BladeBlade(UtilsTheme::get_template_directories(), $cache_path);
         $this->registerTwigDirective();
         $this->registerLatteDirective();
+        $this->registerIconifyDirective();
     }
 
     private function registerTwigDirective(): void
@@ -66,6 +67,21 @@ class Blade
                     }, ARRAY_FILTER_USE_KEY);
                     \$__latteContext = array_merge(\$__latteContext, \$__latteExtra);
                     echo \\Picowind\\render(\$__latteTemplate, \$__latteContext, 'latte', false);
+                }
+            ?>";
+        });
+    }
+
+    private function registerIconifyDirective(): void
+    {
+        $this->bladeBlade->directive('ux_icon', function ($expression) {
+            // Wrap the expression in array brackets to handle multiple arguments
+            return "<?php
+                \$__iconifyArgs = [{$expression}];
+                \$__iconName = isset(\$__iconifyArgs[0]) ? \$__iconifyArgs[0] : '';
+                \$__iconAttrs = isset(\$__iconifyArgs[1]) ? \$__iconifyArgs[1] : [];
+                if (!empty(\$__iconName)) {
+                    echo \\Picowind\\iconify(\$__iconName, \$__iconAttrs);
                 }
             ?>";
         });

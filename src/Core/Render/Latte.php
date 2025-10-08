@@ -49,6 +49,7 @@ class Latte
 
         $this->registerTwigFunction();
         $this->registerBladeFunction();
+        $this->registerIconifyFunction();
     }
 
     private function registerTwigFunction(): void
@@ -65,6 +66,15 @@ class Latte
         // Register function syntax: {blade('template.blade.php', [vars])}
         $this->latte->addFunction('blade', function (string $template, array $context = []) {
             $output = render($template, $context, 'blade', false) ?? '';
+            return new Html($output);
+        });
+    }
+
+    private function registerIconifyFunction(): void
+    {
+        // Register function syntax: {ux_icon('mdi:home', ['class' => 'icon'])}
+        $this->latte->addFunction('ux_icon', function (string $iconName, array $attributes = []) {
+            $output = \Picowind\iconify($iconName, $attributes);
             return new Html($output);
         });
     }

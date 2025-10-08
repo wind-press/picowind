@@ -33,6 +33,30 @@ function render($paths, array $context = [], ?string $engine = null, ?bool $prin
 }
 
 /**
+ * Render an icon from Iconify.
+ *
+ * @param string $iconName Icon name in format "prefix:icon-name" (e.g., "mdi:home", "bi:github")
+ * @param array  $attributes Optional HTML attributes to add to the SVG element
+ * @return string SVG HTML string or empty string if icon not found
+ *
+ * @example
+ * // Basic usage
+ * echo Picowind\iconify('mdi:home');
+ *
+ * // With attributes
+ * echo Picowind\iconify('mdi:home', ['class' => 'icon-large', 'width' => '32']);
+ */
+function iconify(string $iconName, array $attributes = []): string
+{
+    $theme = Theme::get_instance();
+    $container = $theme->container();
+    /** @var \Picowind\Supports\Iconify */
+    $iconify = $container->get(\Picowind\Supports\Iconify::class);
+
+    return $iconify->get_icon($iconName, $attributes);
+}
+
+/**
  * Gets the global context.
  *
  * The context always contains the global context with the following variables:

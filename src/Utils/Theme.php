@@ -36,6 +36,7 @@ class Theme
         'twig' => 'picowind/cache/twig',
         'blade' => 'picowind/cache/blade',
         'latte' => 'picowind/cache/latte',
+        'iconify' => 'picowind/cache/iconify',
     ];
 
     /**

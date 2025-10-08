@@ -28,8 +28,7 @@ class Template
         private readonly RenderTwig $renderTwig,
         private readonly RenderBlade $renderBlade,
         private readonly RenderLatte $renderLatte,
-    ) {
-    }
+    ) {}
 
     /**
      * @param string|array $paths Template path(s) including file extension

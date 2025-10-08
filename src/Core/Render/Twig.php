@@ -19,6 +19,7 @@ use Timber\Timber;
 use Twig\Environment;
 use Twig\TwigFunction;
 
+use function Picowind\iconify;
 use function Picowind\render;
 
 #[Service]
@@ -48,8 +49,7 @@ class Twig
     {
         $options['cache'] = UtilsTheme::get_cache_path('twig');
 
-        // Auto-reload in development (checks file modification time)
-        // Set to false in production for better performance
+        // Auto-reload in development, set to `false` in production for better performance
         $options['auto_reload'] = defined('WP_DEBUG') && WP_DEBUG;
 
         return $options;
@@ -167,6 +167,19 @@ class Twig
     public function add_latte_tag_to_twig(Environment $twigEnvironment): Environment
     {
         $twigEnvironment->addTokenParser(new LatteTokenParser());
+        return $twigEnvironment;
+    }
+
+    #[Hook('timber/twig', 'filter')]
+    public function add_iconify_function_to_twig(Environment $twigEnvironment): Environment
+    {
+        $twigEnvironment->addFunction(
+            new TwigFunction(
+                'ux_icon',
+                iconify(...),
+                ['is_safe' => ['html']],
+            ),
+        );
         return $twigEnvironment;
     }
 }

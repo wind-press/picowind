@@ -12,6 +12,8 @@ vendor
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+.vite
+.claude
 
 # Log files
 npm-debug.log*
@@ -32,3 +34,7 @@ config.codekit3
 # OS specific files
 .DS_Store
 **/.DS_Store
+
+# Auto-generated type declarations
+auto-imports.d.ts
+components.d.ts
