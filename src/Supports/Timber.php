@@ -36,12 +36,18 @@ class Timber
     public function add_to_context(array $context): array
     {
         $context['site'] = $this->site;
-        $context['menu'] = TimberTimber::get_menu();
-
-        $context['primary_menu'] = TimberTimber::get_menu('primary');
-        $context['footer_menu'] = TimberTimber::get_menu('footer');
         $context['options'] = function_exists('get_fields') ? get_fields('option') : [];
 
         return $context;
+    }
+
+    #[Hook('timber/twig/functions', 'filter')]
+    public function add_timber_functions($functions)
+    {
+        $functions['function_exists'] = [
+            'callable' => 'function_exists',
+        ];
+
+        return $functions;
     }
 }

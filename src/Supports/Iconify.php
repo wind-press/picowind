@@ -15,6 +15,9 @@ use Picowind\Utils\Theme as UtilsTheme;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\UX\Icons\Exception\IconNotFoundException;
 use Symfony\UX\Icons\Iconify as UXIconify;
+use Symfony\UX\Icons\IconRegistryInterface;
+use Symfony\UX\Icons\Registry\CacheIconRegistry;
+use Symfony\UX\Icons\Registry\IconifyOnDemandRegistry;
 
 /**
  * Iconify service for rendering SVG icons from Iconify API.
@@ -29,7 +32,7 @@ use Symfony\UX\Icons\Iconify as UXIconify;
 #[Service]
 class Iconify
 {
-    private readonly UXIconify $iconify;
+    private readonly IconRegistryInterface $registry;
 
     public function __construct()
     {
@@ -41,8 +44,13 @@ class Iconify
         // Initialize Symfony cache adapter
         $cache = new FilesystemAdapter('iconify', 0, $cache_path);
 
-        // Initialize Symfony UX Iconify
-        $this->iconify = new UXIconify($cache);
+        // Initialize Symfony UX Iconify (for fetching icon sets metadata)
+        $iconify = new UXIconify($cache);
+
+        // Create the IconifyOnDemandRegistry and wrap it with CacheIconRegistry
+        // This ensures both icon sets metadata AND individual icon SVG data are cached
+        $onDemandRegistry = new IconifyOnDemandRegistry($iconify);
+        $this->registry = new CacheIconRegistry($onDemandRegistry, $cache);
     }
 
     /**
@@ -62,8 +70,8 @@ class Iconify
         [$prefix, $name] = explode(':', $iconName, 2);
 
         try {
-            // Fetch icon from Iconify
-            $icon = $this->iconify->fetchIcon($prefix, $name);
+            // Fetch icon from registry (with caching)
+            $icon = $this->registry->get($iconName);
 
             // Add custom attributes if provided
             if (! empty($attributes)) {
