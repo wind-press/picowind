@@ -13,7 +13,7 @@
     - [x] Latte
 - [ ] CI/CD pipeline (must transfer the repo to the LiveCanvas org first)
     - [ ] Release
-- [ ] Adapt the Picostrap template/views
+- [x] Adapt the Picostrap template/views
 
 
 ## Adapt most of the Picostrap features

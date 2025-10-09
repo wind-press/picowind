@@ -1,6 +1,7 @@
 .node_modules
 .vscode
 .DS_Store
+.vite
 .github
 .gitignore
 .npmrc
@@ -14,4 +15,6 @@ tsconfig.json
 mago.toml
 rector.php
 ecs.php
-child
+TODO.md
+auto-imports.d.ts
+components.d.ts

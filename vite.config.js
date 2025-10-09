@@ -4,12 +4,15 @@ import vue from '@vitejs/plugin-vue';
 import { v4wp } from '@kucrut/vite-for-wp';
 import { wp_scripts } from '@kucrut/vite-for-wp/plugins';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import tailwindcss from '@tailwindcss/vite';
+import Icons from 'unplugin-icons/vite';
+import IconsResolver from 'unplugin-icons/resolver';
+import Components from 'unplugin-vue-components/vite';
+
 // import { nodePolyfills } from 'vite-plugin-node-polyfills';
 // import wasm from 'vite-plugin-wasm';
 // import topLevelAwait from 'vite-plugin-top-level-await';
 // import svgr from 'vite-plugin-svgr';
-// import Icons from 'unplugin-icons/vite';
-// import IconsResolver from 'unplugin-icons/resolver';
 // import httpsImports from 'vite-plugin-https-imports';
 
 export default defineConfig({
@@ -17,6 +20,7 @@ export default defineConfig({
     //     __dirname: JSON.stringify('/'),
     // },
     plugins: [
+        tailwindcss(),
         // wasm(),
         // topLevelAwait(),
         // nodePolyfills({
@@ -33,7 +37,16 @@ export default defineConfig({
         }),
         vue(),
         wp_scripts(),
-        // Icons({ autoInstall: true, scale: 1 }),
+        Icons({
+            autoInstall: true,
+            scale: 1
+        }),
+        Components({
+            dts: true,
+            resolvers: [
+                IconsResolver(),
+            ],
+        }),
         // svgr({
         //     svgrOptions: {
         //         dimensions: false,

@@ -60,7 +60,7 @@ class Theme
 
         wp_enqueue_script(
             $handle . '-i18n',
-            $manifest->is_dev ? Vite\generate_development_asset_src($manifest, 'resources/admin/wp-i18n.js') : Vite\prepare_asset_url($manifest->dir) . '/wp-i18n.js',
+            $manifest->is_dev ? Vite\generate_development_asset_src($manifest, 'resources/wp-i18n.js') : Vite\prepare_asset_url($manifest->dir) . '/wp-i18n.js',
             ['wp-i18n'],
             null,
         );
