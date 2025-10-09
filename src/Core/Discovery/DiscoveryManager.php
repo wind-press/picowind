@@ -46,7 +46,18 @@ final class DiscoveryManager
 
     private function initializeDiscoveryLocations(): void
     {
-        $composerFile = get_template_directory() . '/composer.json';
+        // Load parent theme composer locations
+        $this->loadComposerLocations(get_template_directory());
+
+        // Load child theme locations if exists
+        if (get_stylesheet_directory() !== get_template_directory()) {
+            $this->loadChildThemeLocations();
+        }
+    }
+
+    private function loadComposerLocations(string $directory): void
+    {
+        $composerFile = $directory . '/composer.json';
         $composerContent = file_get_contents($composerFile);
 
         if (false === $composerContent) {
@@ -61,8 +72,8 @@ final class DiscoveryManager
 
         if (isset($composerData['autoload']) && is_array($composerData['autoload']) && isset($composerData['autoload']['psr-4']) && is_array($composerData['autoload']['psr-4'])) {
             foreach ($composerData['autoload']['psr-4'] as $namespace => $path) {
-                if (is_string($namespace) && is_string($path) && str_starts_with($namespace, 'Picowind\\')) {
-                    $fullPath = get_template_directory() . '/' . $path;
+                if (is_string($namespace) && is_string($path)) {
+                    $fullPath = $directory . '/' . $path;
                     $this->discoveryLocations[] = new DiscoveryLocation(
                         $namespace,
                         $fullPath,
@@ -80,8 +91,8 @@ final class DiscoveryManager
             )
         ) {
             foreach ($composerData['autoload-dev']['psr-4'] as $namespace => $path) {
-                if (is_string($namespace) && is_string($path) && str_starts_with($namespace, 'Picowind\\Tests\\')) {
-                    $fullPath = get_template_directory() . '/' . $path;
+                if (is_string($namespace) && is_string($path)) {
+                    $fullPath = $directory . '/' . $path;
                     $this->discoveryLocations[] = new DiscoveryLocation(
                         $namespace,
                         $fullPath,
@@ -89,6 +100,23 @@ final class DiscoveryManager
                 }
             }
         }
+    }
+
+    private function loadChildThemeLocations(): void
+    {
+        $childThemeDir = get_stylesheet_directory();
+
+        // Load from child theme composer.json if exists
+        if (file_exists($childThemeDir . '/composer.json')) {
+            $this->loadComposerLocations($childThemeDir);
+        }
+
+        // Always scan the entire child theme directory
+        // Empty namespace means we'll extract the actual namespace from each file
+        $this->discoveryLocations[] = new DiscoveryLocation(
+            '',
+            $childThemeDir,
+        );
     }
 
     private function initializeDiscoveries(): void
@@ -167,13 +195,37 @@ final class DiscoveryManager
             return;
         }
 
+        // Try composer classmap first (faster, if available)
+        $this->scanViaComposerClassmap($discoveryLocation);
+
+        // Always do directory scanning as well to catch classes not in composer classmap
+        // This ensures child theme classes and manually added files are discovered
+        $scanner = new DirectoryScanner($this->discoveries);
+        $scanner->scan($discoveryLocation, $path);
+    }
+
+    private function scanViaComposerClassmap(DiscoveryLocation $discoveryLocation): bool
+    {
+        // Only use classmap for vendor or parent theme with composer
+        if (! $discoveryLocation->isVendor() && get_stylesheet_directory() !== get_template_directory()) {
+            // This is likely a child theme location without composer
+            return false;
+        }
+
         $classmap = $this->getComposerClassmap();
+        if (empty($classmap)) {
+            return false;
+        }
 
         $classes = [];
         foreach ($classmap as $className => $filePath) {
             if (str_starts_with($className, rtrim($discoveryLocation->namespace, '\\'))) {
                 $classes[$className] = $filePath;
             }
+        }
+
+        if (empty($classes)) {
+            return false;
         }
 
         foreach (array_keys($classes) as $className) {
@@ -193,6 +245,8 @@ final class DiscoveryManager
                 }
             }
         }
+
+        return true;
     }
 
     /**
