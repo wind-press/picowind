@@ -36,7 +36,6 @@ class Theme
         'twig' => 'picowind/cache/twig',
         'blade' => 'picowind/cache/blade',
         'latte' => 'picowind/cache/latte',
-        'iconify' => 'picowind/cache/iconify',
     ];
 
     /**
@@ -76,20 +75,24 @@ class Theme
     }
 
     /**
-     * Get cache path for a specific rendering engine
+     * Get cache path for a specific feature
      *
-     * @param string $engine The rendering engine ('twig' or 'blade')
+     * @param ?string $name Feature name (e.g., 'twig', 'blade', 'latte', 'iconify')
      * @return string The cache path
      */
-    public static function get_cache_path(string $engine): string
+    public static function get_cache_path(?string $name = null): string
     {
         $upload_dir = wp_upload_dir()['basedir'];
 
-        if (! isset(self::CACHE_DIRECTORIES[$engine])) {
-            return $upload_dir . '/picowind/cache/' . $engine;
+        if (null === $name) {
+            return $upload_dir . '/picowind/cache';
         }
 
-        return $upload_dir . '/' . self::CACHE_DIRECTORIES[$engine];
+        if (! isset(self::CACHE_DIRECTORIES[$name])) {
+            return $upload_dir . '/picowind/cache/' . $name;
+        }
+
+        return $upload_dir . '/' . self::CACHE_DIRECTORIES[$name];
     }
 
     public static function is_child_theme(): bool

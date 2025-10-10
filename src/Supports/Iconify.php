@@ -36,7 +36,7 @@ class Iconify
 
     public function __construct()
     {
-        $cache_path = UtilsTheme::get_cache_path('iconify');
+        $cache_path = UtilsTheme::get_cache_path();
         if (! file_exists($cache_path)) {
             wp_mkdir_p($cache_path);
         }
