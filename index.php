@@ -23,4 +23,4 @@ $templates = ['index.twig'];
 if (is_home()) {
     array_unshift($templates, 'front-page.twig', 'home.twig');
 }
-render($templates, $context, 'twig');
+render($templates, $context);
