@@ -26,20 +26,22 @@ final class HookDiscovery implements Discovery
     public function discover(DiscoveryLocation $discoveryLocation, ClassReflector $classReflector): void
     {
         foreach ($classReflector->getPublicMethods() as $methodReflector) {
-            $hookAttribute = $methodReflector->getAttribute(Hook::class);
+            $hookAttributes = $methodReflector->getAttributes(Hook::class);
 
-            if (null === $hookAttribute) {
+            if (empty($hookAttributes)) {
                 continue;
             }
 
-            $this->discoveryItems->add($discoveryLocation, [
-                'className' => $classReflector->getName(),
-                'methodName' => $methodReflector->getName(),
-                'hook' => $hookAttribute->name,
-                'type' => $hookAttribute->type ?? 'filter',
-                'priority' => $hookAttribute->priority ?? 10,
-                'acceptedArgs' => $hookAttribute->accepted_args ?? 1,
-            ]);
+            foreach ($hookAttributes as $hookAttribute) {
+                $this->discoveryItems->add($discoveryLocation, [
+                    'className' => $classReflector->getName(),
+                    'methodName' => $methodReflector->getName(),
+                    'hook' => $hookAttribute->name,
+                    'type' => $hookAttribute->type ?? 'filter',
+                    'priority' => $hookAttribute->priority ?? 10,
+                    'acceptedArgs' => $hookAttribute->accepted_args ?? 1,
+                ]);
+            }
         }
     }
 

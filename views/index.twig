@@ -1,3 +1,4 @@
+{# This template are based on the Symfony 7 #}
 <!DOCTYPE html>
 <html dir="ltr" lang="en">
 	<head>
@@ -6,7 +7,7 @@
 		<title>{{ site.title }}</title>
 		<style>
             :root {
-                --hue: 101;
+                --hue: {{ random(0, 360) }};
                 --light-color: hsl(var(--hue), 20%, 95%);
                 --dark-color: hsl(var(--hue), 20%, 40%);
             }
@@ -345,8 +346,10 @@
                 }
             }
         </style>
+        {{ function('wp_head') }}
     </head>
     <body>
+        {{ function('wp_body_open') }}
         <header>
             <div class="wrapper">
                 <section class="logo">
@@ -381,9 +384,8 @@
 
                         <li>
                             {{ ux_icon('tabler:info-circle', {class: '', width: 40, height: 40}) }}
-                            {# <span>You are seeing this page because the current active theme is not a child theme of Picowind.</span> #}
                             <span>
-                                You are seeing this page because the a child theme is not activated or the <code style="display:inline;">index.php</code> file is not overridden.
+                                You are seeing this page because the child theme is not activated or the <code style="display:inline;">index.php</code> file has not been overridden.
                             </span>
                         </li>
                     </ul>
@@ -393,12 +395,10 @@
                         {{ ux_icon('tabler:square-chevrons-right', {class: '', width: 24, height: 24}) }}
                         <span>
                             {% if user is not null and user.can('switch_themes') %}
-                                {# <a target="_blank" href="{{ function('get_admin_url') }}">Activate a child theme of Picowind</a> to replace this placeholder page. #}
-                                <a target="_blank" href="{{ function('get_admin_url') }}theme-install.php?tab=search&type=child&search=picowind">Use a child theme</a> or override the <code style="display:inline;">index.php</code> file of theme to replace this placeholder page.
+                                <a target="_blank" href="{{ function('get_admin_url') }}themes.php">Use a child theme</a> or override the theme's <code style="display:inline;">index.php</code> file to replace this placeholder page.
                             {% else %}
                                 Please contact the site administrator.
                             {% endif %}
-
                         </span>
                     </p>
                 </section>

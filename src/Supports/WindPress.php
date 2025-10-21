@@ -15,6 +15,7 @@ use Picowind\Core\Discovery\Attributes\Service;
 use Picowind\Utils\Theme as UtilsTheme;
 use Symfony\Component\Finder\Finder;
 use Throwable;
+use WindPress\WindPress\Core\Volume;
 use WindPress\WindPress\Utils\Common;
 use WindPress\WindPress\Utils\Config;
 
@@ -159,7 +160,7 @@ class WindPress
     #[Hook('a!windpress/core/volume:save_entries.entry.picowind-parent', 'action')]
     public function sfs_handler_save(array $entry): void
     {
-        if (! isset($entry['signature']) || ! isset($entry['handler'])) {
+        if (! isset($entry['handler'])) {
             return;
         }
 
@@ -179,6 +180,24 @@ class WindPress
             return; // Unknown handler
         }
 
+        // if the signature is not set, it is a new entry.
+        if (! isset($entry['signature'])) {
+            // sanitize the file name.
+            add_filter('sanitize_file_name_chars', [Volume::class, 'sanitize_file_name_chars'], 10, 2);
+            // split the path, and sanitize each part.
+            $_relativePath = implode('/', array_map('sanitize_file_name', explode('/', $_relativePath)));
+            $_relativePath = sanitize_file_name($_relativePath);
+            remove_filter('sanitize_file_name_chars', [Volume::class, 'sanitize_file_name_chars'], 10);
+            $entry['name'] = pathinfo($_relativePath, PATHINFO_BASENAME);
+
+            // only handle a css and js files.
+            if (! in_array(pathinfo($entry['name'], PATHINFO_EXTENSION), ['css', 'js'], true)) {
+                return;
+            }
+
+            $entry['signature'] = wp_create_nonce(sprintf('%s:%s', $handler, $_relativePath));
+        }
+
         // verify the signature
         if (! wp_verify_nonce($entry['signature'], sprintf('%s:%s', $handler, $_relativePath))) {
             return;
@@ -196,5 +215,25 @@ class WindPress
                 error_log($throwable->__toString());
             }
         }
+    }
+
+    #[Hook('f!windpress/core/volume:get_available_handlers', 'filter')]
+    public function sfs_handler_list(array $handlers): array
+    {
+        $handlers[] = [
+            'value' => 'picowind-child',
+            'label' => __('Picowind Child Theme', 'picowind'),
+            'description' => __('Manage files within the Picowind child theme', 'picowind'),
+        ];
+
+        if (UtilsTheme::is_child_theme()) {
+            $handlers[] = [
+                'value' => 'picowind-parent',
+                'label' => __('Picowind Parent Theme', 'picowind'),
+                'description' => __('Manage files within the Picowind parent theme', 'picowind'),
+            ];
+        }
+
+        return $handlers;
     }
 }
