@@ -53,11 +53,16 @@ class Theme
             throw new RuntimeException('Container initialization failed');
         }
 
-        $this->container->compile();
-        $this->register_discovered_hooks();
-        $this->register_discovered_commands();
-        $this->booted = true;
+        // Early registration of static hooks before container compilation
+        $this->each_discovery(HookDiscovery::class, fn ($discovery) => $discovery->registerStaticHooks());
 
+        $this->container->compile();
+
+        // Register remaining hooks and commands after container compilation
+        $this->each_discovery(HookDiscovery::class, fn ($discovery) => $discovery->registerHooks());
+        $this->each_discovery(CommandDiscovery::class, fn ($discovery) => $discovery->registerCommands());
+
+        $this->booted = true;
         do_action('a!picowind/core/theme:booted', $this);
     }
 
@@ -80,28 +85,16 @@ class Theme
         $this->discoveryManager->discover();
     }
 
-    private function register_discovered_hooks(): void
+    /**
+     * Execute a callback for each discovery of a given type
+     *
+     * @param class-string $discoveryClass
+     */
+    private function each_discovery(string $discoveryClass, callable $callback): void
     {
-        if (! $this->discoveryManager instanceof DiscoveryManager) {
-            return;
-        }
-
         foreach ($this->discoveryManager->getDiscoveries() as $discovery) {
-            if ($discovery instanceof HookDiscovery) {
-                $discovery->registerHooks();
-            }
-        }
-    }
-
-    private function register_discovered_commands(): void
-    {
-        if (! $this->discoveryManager instanceof DiscoveryManager) {
-            return;
-        }
-
-        foreach ($this->discoveryManager->getDiscoveries() as $discovery) {
-            if ($discovery instanceof CommandDiscovery) {
-                $discovery->registerCommands();
+            if ($discovery instanceof $discoveryClass) {
+                $callback($discovery);
             }
         }
     }

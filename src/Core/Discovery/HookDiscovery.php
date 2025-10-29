@@ -14,6 +14,9 @@ final class HookDiscovery implements Discovery
     /** @var array<array<string, mixed>> */
     private array $hooks = [];
 
+    /** @var array<string> Track registered hooks to avoid duplicates */
+    private array $registeredHooks = [];
+
     public function __construct(
         private Container $container,
     ) {
@@ -40,6 +43,7 @@ final class HookDiscovery implements Discovery
                     'type' => $hookAttribute->type ?? 'filter',
                     'priority' => $hookAttribute->priority ?? 10,
                     'acceptedArgs' => $hookAttribute->accepted_args ?? 1,
+                    'isStatic' => $methodReflector->isStatic(),
                 ]);
             }
         }
@@ -59,11 +63,41 @@ final class HookDiscovery implements Discovery
                     'type' => $discoveryItem['type'] ?? 'filter',
                     'priority' => $discoveryItem['priority'],
                     'acceptedArgs' => $discoveryItem['acceptedArgs'],
+                    'isStatic' => $discoveryItem['isStatic'] ?? false,
                 ];
             }
         }
     }
 
+    /**
+     * Register only static method hooks (can be called before container compilation)
+     */
+    public function registerStaticHooks(): void
+    {
+        $groupedHooks = [];
+
+        foreach ($this->hooks as $hook) {
+            // Only include static hooks
+            if (empty($hook['isStatic'])) {
+                continue;
+            }
+
+            $priority = $hook['priority'];
+            $groupedHooks[$priority][] = $hook;
+        }
+
+        ksort($groupedHooks);
+
+        foreach ($groupedHooks as $groupedHook) {
+            foreach ($groupedHook as $hook) {
+                $this->registerHookFromData($hook);
+            }
+        }
+    }
+
+    /**
+     * Register all hooks (both static and instance methods)
+     */
     public function registerHooks(): void
     {
         $groupedHooks = [];
@@ -99,7 +133,34 @@ final class HookDiscovery implements Discovery
         $type = $data['type'] ?? 'filter';
         $priority = $data['priority'];
         $acceptedArgs = $data['acceptedArgs'];
+        $isStatic = $data['isStatic'] ?? false;
 
+        // Create unique key to track registered hooks
+        $hookKey = $className . '::' . $methodName . '@' . $hookName . ':' . $priority;
+
+        // Skip if already registered
+        if (isset($this->registeredHooks[$hookKey])) {
+            return;
+        }
+
+        // Handle static methods
+        if ($isStatic) {
+            $callback = [$className, $methodName];
+            assert(is_callable($callback));
+
+            if ('action' === $type) {
+                add_action($hookName, $callback, $priority, $acceptedArgs);
+            } else {
+                add_filter($hookName, $callback, $priority, $acceptedArgs);
+            }
+
+            // Mark as registered
+            $this->registeredHooks[$hookKey] = true;
+
+            return;
+        }
+
+        // Handle instance methods - require container registration
         if (! $this->container->has($className)) {
             return;
         }
@@ -115,6 +176,9 @@ final class HookDiscovery implements Discovery
         } else {
             add_filter($hookName, $callback, $priority, $acceptedArgs);
         }
+
+        // Mark as registered
+        $this->registeredHooks[$hookKey] = true;
     }
 
     /**

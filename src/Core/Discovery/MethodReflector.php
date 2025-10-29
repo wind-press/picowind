@@ -19,6 +19,11 @@ final class MethodReflector
         return $this->reflectionMethod->getName();
     }
 
+    public function isStatic(): bool
+    {
+        return $this->reflectionMethod->isStatic();
+    }
+
     /**
      * @template T
      * @param class-string<T> $attributeClass
