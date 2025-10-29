@@ -10,16 +10,13 @@ declare(strict_types=1);
 
 namespace Picowind;
 
-use Exception;
 use Picowind\Core\Container\Container;
 use Picowind\Core\Discovery\CommandDiscovery;
 use Picowind\Core\Discovery\DiscoveryManager;
 use Picowind\Core\Discovery\HookDiscovery;
-use Picowind\Supports\Timber as SupportsTimber;
 use RuntimeException;
-use Timber\Site;
 
-class Theme extends Site
+class Theme
 {
     private static ?self $instance = null;
 
@@ -41,7 +38,6 @@ class Theme extends Site
     public function __construct()
     {
         $this->boot();
-        parent::__construct();
     }
 
     public function boot(): void
@@ -51,7 +47,7 @@ class Theme extends Site
         }
 
         $this->container = new Container();
-        $this->discover_components();
+        $this->boot_discover();
 
         if (! $this->container instanceof Container) {
             throw new RuntimeException('Container initialization failed');
@@ -60,7 +56,6 @@ class Theme extends Site
         $this->container->compile();
         $this->register_discovered_hooks();
         $this->register_discovered_commands();
-        $this->setup_timber();
         $this->booted = true;
 
         do_action('a!picowind/core/theme:booted', $this);
@@ -75,7 +70,7 @@ class Theme extends Site
         return $this->container;
     }
 
-    private function discover_components(): void
+    private function boot_discover(): void
     {
         if (! $this->container instanceof Container) {
             throw new RuntimeException('Container not initialized');
@@ -87,7 +82,7 @@ class Theme extends Site
 
     private function register_discovered_hooks(): void
     {
-        if (! $this->discoveryManager instanceof \Picowind\Core\Discovery\DiscoveryManager) {
+        if (! $this->discoveryManager instanceof DiscoveryManager) {
             return;
         }
 
@@ -100,7 +95,7 @@ class Theme extends Site
 
     private function register_discovered_commands(): void
     {
-        if (! $this->discoveryManager instanceof \Picowind\Core\Discovery\DiscoveryManager) {
+        if (! $this->discoveryManager instanceof DiscoveryManager) {
             return;
         }
 
@@ -108,18 +103,6 @@ class Theme extends Site
             if ($discovery instanceof CommandDiscovery) {
                 $discovery->registerCommands();
             }
-        }
-    }
-
-    private function setup_timber(): void
-    {
-        // Get the Timber service from container and set the site
-        try {
-            $timberService = $this->container->get(SupportsTimber::class);
-            $timberService->setSite($this);
-        } catch (Exception $exception) {
-            // Fallback if Timber service not found
-            error_log('Failed to get Timber service from container: ' . $exception->getMessage());
         }
     }
 }

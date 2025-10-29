@@ -13,7 +13,6 @@ use Picowind\Theme;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-// Initialize the unified theme architecture
 Theme::get_instance();
 
 if (! function_exists('lc_theme_is_livecanvas_friendly')) {

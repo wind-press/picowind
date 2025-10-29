@@ -18,24 +18,18 @@ use Timber\Timber as TimberTimber;
 use function get_fields;
 
 #[Service]
-class Timber
+class Timber extends Site
 {
-    private ?Site $site = null;
-
     public function __construct()
     {
         TimberTimber::init();
-    }
-
-    public function setSite(Site $site): void
-    {
-        $this->site = $site;
+        parent::__construct();
     }
 
     #[Hook('timber/context', 'filter')]
     public function add_to_context(array $context): array
     {
-        $context['site'] = $this->site;
+        $context['site'] = $this;
         $context['options'] = function_exists('get_fields') ? get_fields('option') : [];
 
         return $context;
