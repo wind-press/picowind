@@ -31,6 +31,43 @@ class Template
     ) {}
 
     /**
+     * Renders a template string with the given context.
+     *
+     * @param string $template_string The template string to render
+     * @param array $context Context data to pass to template
+     * @param string $engine Engine to use ('twig', 'blade', 'latte'). Default is 'twig'
+     * @param ?bool $print Whether to print output. Default true
+     * @return void|string Rendered output if $print is false, otherwise void
+     */
+    public function render_string(string $template_string, array $context = [], string $engine = 'twig', ?bool $print = true): ?string
+    {
+        do_action('a!picowind/template/render_string:before', $template_string, $context, $engine, $print);
+
+        // Allow complete override of rendering logic
+        $customRender = apply_filters('f!picowind/template/render_string:output', null, $template_string, $context, $engine);
+        if (null !== $customRender) {
+            if ($print) {
+                echo $customRender;
+                do_action('a!picowind/template/render_string:after', $customRender, $template_string, $context, $engine);
+                return null;
+            }
+            do_action('a!picowind/template/render_string:after', $customRender, $template_string, $context, $engine);
+            return $customRender;
+        }
+
+        $output = $this->renderStringWithEngine($engine, $template_string, $context);
+
+        if ($print) {
+            echo $output;
+            do_action('a!picowind/template/render_string:after', $output, $template_string, $context, $engine);
+            return null;
+        }
+
+        do_action('a!picowind/template/render_string:after', $output, $template_string, $context, $engine);
+        return $output;
+    }
+
+    /**
      * @param string|array $paths Template path(s) including file extension
      * @param array $context Context data to pass to template
      * @param ?string $engine Engine to use ('twig', 'blade', 'latte', etc). Auto-detected if null
@@ -147,6 +184,22 @@ class Template
             'twig' => $this->renderTwig->render_template($paths, $context, false),
             'blade' => $this->renderBlade->render_template($paths, $context, false),
             'latte' => $this->renderLatte->render_template($paths, $context, false),
+            default => throw new UnsupportedRenderEngineException($engine),
+        };
+    }
+
+    private function renderStringWithEngine(string $engine, string $template_string, array $context)
+    {
+        // Allow custom rendering engines via filter
+        $customEngineOutput = apply_filters('f!picowind/template/engine:render_string', null, $engine, $template_string, $context);
+        if (null !== $customEngineOutput) {
+            return $customEngineOutput;
+        }
+
+        return match ($engine) {
+            'twig' => $this->renderTwig->render_string($template_string, $context, false),
+            'blade' => $this->renderBlade->render_string($template_string, $context, false),
+            'latte' => $this->renderLatte->render_string($template_string, $context, false),
             default => throw new UnsupportedRenderEngineException($engine),
         };
     }

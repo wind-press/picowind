@@ -15,7 +15,7 @@ class Theme
     #[Hook('after_setup_theme', 'action')]
     public function setup_theme_supports(): void
     {
-        // add_theme_support('');
+        // add_theme_support()
     }
 
     #[Hook('admin_menu', 'action')]

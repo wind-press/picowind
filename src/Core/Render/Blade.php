@@ -139,4 +139,25 @@ class Blade
         }
         return null;
     }
+
+    /**
+     * Render a Blade template string.
+     *
+     * @param string $template_string The Blade template string to render.
+     * @param array  $context The context data to pass to the template.
+     * @param bool   $print Whether to print the output directly or return it.
+     * @return string|null
+     */
+    public function render_string(string $template_string, array $context = [], bool $print = true)
+    {
+        // Use the BladeCompiler's render method to compile and render the string
+        $output = $this->bladeBlade->compiler()->render($template_string, $context);
+
+        if ($print) {
+            echo $output;
+        } else {
+            return $output;
+        }
+        return null;
+    }
 }

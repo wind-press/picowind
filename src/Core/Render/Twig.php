@@ -75,6 +75,25 @@ class Twig
     }
 
     /**
+     * Renders a Twig template string with the given context.
+     *
+     * @param string $template_string The Twig template string to render.
+     * @param array $context The context data to pass to the template.
+     * @param bool $print Whether to print the output (true) or return it (false). Default is true.
+     * @return bool|string|null Returns the rendered output if $print is false, otherwise void.
+     */
+    public function render_string(string $template_string, array $context = [], bool $print = true)
+    {
+        $output = Timber::compile_string($template_string, $context);
+        if ($print) {
+            echo $output;
+        } else {
+            return $output;
+        }
+        return null;
+    }
+
+    /**
      * Renders a Blade template from within Twig.
      * Mimics Twig's include behavior with context passing.
      *

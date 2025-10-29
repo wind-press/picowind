@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Picowind\Core\Render;
 
 use Latte\Engine;
+use Latte\Loaders\StringLoader;
 use Latte\Runtime\Html;
 use Picowind\Core\Discovery\Attributes\Service;
 use Picowind\Core\Render\Latte\LatteExtension;
@@ -113,6 +114,49 @@ class Latte
         try {
             $output = $this->latte->renderToString($template_name, $context);
         } catch (\Throwable $e) {
+            throw $e;
+        }
+
+        if ($print) {
+            echo $output;
+        } else {
+            return $output;
+        }
+        return null;
+    }
+
+    /**
+     * Render a Latte template string.
+     *
+     * @param string $template_string The Latte template string to render.
+     * @param array  $context The context data to pass to the template.
+     * @param bool   $print Whether to print the output directly or return it.
+     * @return string|null
+     */
+    public function render_string(string $template_string, array $context = [], bool $print = true)
+    {
+        try {
+            // Save the current loader
+            $originalLoader = $this->latte->getLoader();
+
+            // Create a unique key for this string template
+            $templateKey = '__string_template__';
+
+            // Use StringLoader with the template string
+            $this->latte->setLoader(new StringLoader([
+                $templateKey => $template_string,
+            ]));
+
+            // Render the string template
+            $output = $this->latte->renderToString($templateKey, $context);
+
+            // Restore the original loader
+            $this->latte->setLoader($originalLoader);
+        } catch (\Throwable $e) {
+            // Ensure loader is restored even on error
+            if (isset($originalLoader)) {
+                $this->latte->setLoader($originalLoader);
+            }
             throw $e;
         }
 

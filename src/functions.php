@@ -33,6 +33,25 @@ function render($paths, array $context = [], ?string $engine = null, ?bool $prin
 }
 
 /**
+ * Render a template string using the specified engine.
+ *
+ * @param string $template_string The template string to render.
+ * @param array  $context The context data to pass to the template.
+ * @param string $engine The template engine to use ('twig', 'latte', 'blade'). Default is 'twig'.
+ * @param ?bool $print Whether to print the rendered template. Default is true.
+ * @return void|string The rendered template output if $print is false, otherwise void.
+ */
+function render_string(string $template_string, array $context = [], string $engine = 'twig', ?bool $print = true)
+{
+    $theme = Theme::get_instance();
+    $container = $theme->container();
+    /** @var Template */
+    $template = $container->get(Template::class);
+
+    return $template->render_string($template_string, $context, $engine, $print);
+}
+
+/**
  * Render an icon from Iconify.
  *
  * @param string $iconName Icon name in format "prefix:icon-name" (e.g., "mdi:home", "bi:github")
