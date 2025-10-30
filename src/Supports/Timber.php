@@ -26,7 +26,7 @@ class Timber extends Site
         parent::__construct();
     }
 
-    #[Hook('timber/context', 'filter')]
+    #[Hook('f!picowind/context', 'filter')]
     public function add_to_context(array $context): array
     {
         $context['site'] = $this;

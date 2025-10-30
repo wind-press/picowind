@@ -29,7 +29,32 @@ function render($paths, array $context = [], ?string $engine = null, ?bool $prin
     /** @var Template */
     $template = $container->get(Template::class);
 
-    return $template->render_template($paths, $context, $engine, $print);
+    try {
+        return $template->render_template($paths, $context, $engine, $print);
+    } catch (\Throwable $e) {
+        error_log(sprintf(
+            "[Picowind Render Error]\nPaths: %s\nEngine: %s\nMessage: %s\nFile: %s:%d\nTrace:\n%s",
+            is_array($paths) ? implode(', ', $paths) : $paths,
+            $engine ?? 'auto-detect',
+            $e->getMessage(),
+            $e->getFile(),
+            $e->getLine(),
+            $e->getTraceAsString(),
+        ));
+
+        // Engine and paths info.
+        $failMessage = sprintf(
+            "[Picowind Render Failed]\nEngine: %s\nPaths: %s\n",
+            $engine ?? 'auto-detect',
+            is_array($paths) ? implode(', ', $paths) : $paths,
+        );
+
+        if ($print) {
+            echo $failMessage;
+            return null;
+        }
+        return $failMessage;
+    }
 }
 
 /**
@@ -48,7 +73,30 @@ function render_string(string $template_string, array $context = [], string $eng
     /** @var Template */
     $template = $container->get(Template::class);
 
-    return $template->render_string($template_string, $context, $engine, $print);
+    try {
+        return $template->render_string($template_string, $context, $engine, $print);
+    } catch (\Throwable $e) {
+        error_log(sprintf(
+            "[Picowind Render String Error]\nEngine: %s\nTemplate: %s\nMessage: %s\nFile: %s:%d\nTrace:\n%s",
+            $engine,
+            substr($template_string, 0, 200),
+            $e->getMessage(),
+            $e->getFile(),
+            $e->getLine(),
+            $e->getTraceAsString(),
+        ));
+
+        $failMessage = sprintf(
+            "[Picowind Render String Failed]\nEngine: %s\n",
+            $engine,
+        );
+
+        if ($print) {
+            echo $failMessage;
+            return null;
+        }
+        return $failMessage;
+    }
 }
 
 /**
