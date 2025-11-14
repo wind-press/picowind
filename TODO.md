@@ -15,16 +15,6 @@
     - [ ] Release
 - [x] Adapt the Picostrap template/views
 
-
-## Adapt most of the Picostrap features
-- [ ] Hide unnecessary tags
-- [ ] Disable Comments
-- [ ] Keeps your head clean
-- [ ] Lightbox
-- [ ] Prefetch CSS
-- [ ] Dark Mode
-
-
 ## Add onboarding/setup wizard
 - [ ] Welcome screen
 - [ ] Setup steps
