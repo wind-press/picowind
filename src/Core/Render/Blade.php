@@ -31,7 +31,7 @@ class Blade
         $this->bladeBlade = new BladeBlade(UtilsTheme::get_template_directories(), $cache_path);
         $this->registerTwigDirective();
         $this->registerLatteDirective();
-        $this->registerIconifyDirective();
+        $this->registerOmniIconDirective();
     }
 
     private function registerTwigDirective(): void
@@ -72,16 +72,17 @@ class Blade
         });
     }
 
-    private function registerIconifyDirective(): void
+    private function registerOmniIconDirective(): void
     {
-        $this->bladeBlade->directive('ux_icon', function ($expression) {
+        $this->bladeBlade->directive('omni_icon', function ($expression) {
             // Wrap the expression in array brackets to handle multiple arguments
+            // Uses Omni Icon plugin via OmniIconSupport wrapper
             return "<?php
-                \$__iconifyArgs = [{$expression}];
-                \$__iconName = isset(\$__iconifyArgs[0]) ? \$__iconifyArgs[0] : '';
-                \$__iconAttrs = isset(\$__iconifyArgs[1]) ? \$__iconifyArgs[1] : [];
+                \$__omniIconArgs = [{$expression}];
+                \$__iconName = isset(\$__omniIconArgs[0]) ? \$__omniIconArgs[0] : '';
+                \$__iconAttrs = isset(\$__omniIconArgs[1]) ? \$__omniIconArgs[1] : [];
                 if (!empty(\$__iconName)) {
-                    echo \\Picowind\\iconify(\$__iconName, \$__iconAttrs);
+                    echo \\Picowind\\omni_icon(\$__iconName, \$__iconAttrs);
                 }
             ?>";
         });

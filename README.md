@@ -104,7 +104,7 @@ picowind/
 - `context()` - Get global WordPress context
 
 ### Icons
-- `iconify($name, $attributes)` - Render Iconify SVG icons
+- `omni_icon($name, $attributes)` - Render SVG icons via Omni Icon plugin (supports Iconify, local uploads, and bundled icons)
 
 ## Template Directories
 

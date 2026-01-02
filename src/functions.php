@@ -100,27 +100,32 @@ function render_string(string $template_string, array $context = [], string $eng
 }
 
 /**
- * Render an icon from Iconify.
+ * Render an icon using Omni Icon plugin.
  *
- * @param string $iconName Icon name in format "prefix:icon-name" (e.g., "mdi:home", "bi:github")
+ * This function wraps the Omni Icon plugin's IconService to render icons.
+ * Requires the Omni Icon plugin to be installed and activated.
+ *
+ * @param string $iconName Icon name in format "prefix:icon-name" (e.g., "mdi:home", "local:my-logo", "omni:windpress")
  * @param array  $attributes Optional HTML attributes to add to the SVG element
  * @return string SVG HTML string or empty string if icon not found
  *
  * @example
  * // Basic usage
- * echo Picowind\iconify('mdi:home');
+ * echo Picowind\omni_icon('mdi:home');
+ * echo Picowind\omni_icon('local:my-logo');
+ * echo Picowind\omni_icon('omni:windpress');
  *
  * // With attributes
- * echo Picowind\iconify('mdi:home', ['class' => 'icon-large', 'width' => '32']);
+ * echo Picowind\omni_icon('mdi:home', ['class' => 'icon-large', 'width' => '32']);
  */
-function iconify(string $iconName, array $attributes = []): string
+function omni_icon(string $iconName, array $attributes = []): string
 {
     $theme = Theme::get_instance();
     $container = $theme->container();
-    /** @var \Picowind\Supports\Iconify */
-    $iconify = $container->get(\Picowind\Supports\Iconify::class);
+    /** @var \Picowind\Supports\OmniIconSupport */
+    $omniIcon = $container->get(\Picowind\Supports\OmniIconSupport::class);
 
-    return $iconify->get_icon($iconName, $attributes);
+    return $omniIcon->get_icon($iconName, $attributes) ?? '';
 }
 
 /**
