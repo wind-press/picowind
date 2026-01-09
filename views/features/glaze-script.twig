@@ -1,0 +1,16 @@
+{# Glaze.js Animation Framework - requires GSAP #}
+<script type="module">
+    import glaze from "https://esm.sh/glazejs";
+    import gsap from "https://esm.sh/gsap";
+    import { ScrollTrigger } from "https://esm.sh/gsap/ScrollTrigger";
+    
+    gsap.registerPlugin(ScrollTrigger);
+
+    let g = glaze({
+        lib: {
+            gsap: {
+                core: gsap,
+            },
+        },
+    });
+</script>

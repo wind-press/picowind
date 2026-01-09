@@ -1,0 +1,33 @@
+{# Rive Web Runtime Script #}
+<script src="https://unpkg.com/@rive-app/canvas@latest"></script>
+<script>
+    // Initialize all Rive instances after runtime loads
+    (function() {
+        function initializeRiveInstances() {
+            // Find all canvas elements with the prefix
+            const canvases = document.querySelectorAll('[id^="picowind-rive-canvas-"]');
+
+            canvases.forEach(function(canvas) {
+                const configAttr = canvas.getAttribute('data-rive-config');
+                if (!configAttr) return;
+
+                try {
+                    const config = JSON.parse(configAttr);
+                    // Add canvas reference to config
+                    config.canvas = canvas;
+
+                    // Initialize Rive instance
+                    new rive.Rive(config);
+                } catch (e) {
+                    console.error('Failed to initialize Rive animation:', e);
+                }
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeRiveInstances);
+        } else {
+            initializeRiveInstances();
+        }
+    })();
+</script>
