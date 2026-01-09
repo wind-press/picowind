@@ -19,6 +19,7 @@
         "psr/log": "^2.0|^3.0",
         "symfony/config": "^6.4",
         "symfony/dependency-injection": "^6.4",
+        "symfony/property-access": "^6.4",
         "timber/timber": "^2.0",
         "webman/blade": "^1.5"
     },
