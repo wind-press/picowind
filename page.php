@@ -19,7 +19,16 @@ $context = context();
 $timber_post = \Timber\Timber::get_post();
 $context['post'] = $timber_post;
 
-render([
-    'page-' . $timber_post->post_name . '.twig',
-    'page.twig',
-], $context);
+$r = render(
+    [
+        'page-' . $timber_post->post_name . '.twig',
+        'page.twig',
+    ],
+    $context,
+    null,
+    true,
+    true,
+);
+
+// Fallback to page.php if Twig rendering fails.
+// $r ? print $r : require_once __DIR__ . '/page.php';

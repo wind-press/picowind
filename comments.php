@@ -29,4 +29,4 @@ $context = [
     'show_closed_message' => ! $comments_open && post_type_supports(get_post_type(), 'comments'),
 ];
 
-render('components/comments.twig', $context);
+render('components/comments.twig', $context, null, true, true);

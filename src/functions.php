@@ -23,7 +23,7 @@ use Timber\Timber;
  * @param ?bool $print Whether to print the rendered template. Default is true.
  * @return void|string The rendered template output if $print is false, otherwise void.
  */
-function render($paths, array $context = [], ?string $engine = null, ?bool $print = true)
+function render($paths, array $context = [], ?string $engine = null, ?bool $print = true, ?bool $silent = false)
 {
     $theme = Theme::get_instance();
     $container = $theme->container();
@@ -33,15 +33,18 @@ function render($paths, array $context = [], ?string $engine = null, ?bool $prin
     try {
         return $template->render_template($paths, $context, $engine, $print);
     } catch (\Throwable $e) {
-        error_log(sprintf(
-            "[Picowind Render Error]\nPaths: %s\nEngine: %s\nMessage: %s\nFile: %s:%d\nTrace:\n%s",
-            is_array($paths) ? implode(', ', $paths) : $paths,
-            $engine ?? 'auto-detect',
-            $e->getMessage(),
-            $e->getFile(),
-            $e->getLine(),
-            $e->getTraceAsString(),
-        ));
+        // TODO: instead of $silent flag, use logging service with levels.
+        if (! $silent) {
+            error_log(sprintf(
+                "[Picowind Render Error]\nPaths: %s\nEngine: %s\nMessage: %s\nFile: %s:%d\nTrace:\n%s",
+                is_array($paths) ? implode(', ', $paths) : $paths,
+                $engine ?? 'auto-detect',
+                $e->getMessage(),
+                $e->getFile(),
+                $e->getLine(),
+                $e->getTraceAsString(),
+            ));
+        }
 
         // Engine and paths info.
         $failMessage = sprintf(
@@ -50,11 +53,10 @@ function render($paths, array $context = [], ?string $engine = null, ?bool $prin
             is_array($paths) ? implode(', ', $paths) : $paths,
         );
 
-        if ($print) {
+        if ($print && ! $silent) {
             echo $failMessage;
-            return null;
         }
-        return $failMessage;
+        return null;
     }
 }
 

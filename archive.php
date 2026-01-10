@@ -37,4 +37,4 @@ if (is_day()) {
 
 $context['posts'] = \Timber\Timber::get_posts();
 
-render($templates, $context);
+render($templates, $context, null, true, true);
