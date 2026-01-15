@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "63cd40a330c0e4e4dad56f592c87ee5e",
+    "content-hash": "4d8899d90d8794b4aca3cb59c3ca8815",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -800,16 +800,16 @@
         },
         {
             "name": "latte/latte",
-            "version": "v3.0.24",
+            "version": "v3.0.25",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nette/latte.git",
-                "reference": "2ec95b542197d82a4837ba5949bd823d0ca7d170"
+                "reference": "bab49c360354f5e7e57c07ec1b1c9b2870a9bda4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nette/latte/zipball/2ec95b542197d82a4837ba5949bd823d0ca7d170",
-                "reference": "2ec95b542197d82a4837ba5949bd823d0ca7d170",
+                "url": "https://api.github.com/repos/nette/latte/zipball/bab49c360354f5e7e57c07ec1b1c9b2870a9bda4",
+                "reference": "bab49c360354f5e7e57c07ec1b1c9b2870a9bda4",
                 "shasum": ""
             },
             "require": {
@@ -883,9 +883,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nette/latte/issues",
-                "source": "https://github.com/nette/latte/tree/v3.0.24"
+                "source": "https://github.com/nette/latte/tree/v3.0.25"
             },
-            "time": "2025-10-31T00:53:04+00:00"
+            "time": "2025-11-26T23:25:45+00:00"
         },
         {
             "name": "nesbot/carbon",
@@ -1277,16 +1277,16 @@
         },
         {
             "name": "symfony/dependency-injection",
-            "version": "v6.4.26",
+            "version": "v6.4.31",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dependency-injection.git",
-                "reference": "5f311eaf0b321f8ec640f6bae12da43a14026898"
+                "reference": "10058832a74a33648870aa2057e3fdc8796a6566"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/5f311eaf0b321f8ec640f6bae12da43a14026898",
-                "reference": "5f311eaf0b321f8ec640f6bae12da43a14026898",
+                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/10058832a74a33648870aa2057e3fdc8796a6566",
+                "reference": "10058832a74a33648870aa2057e3fdc8796a6566",
                 "shasum": ""
             },
             "require": {
@@ -1338,7 +1338,7 @@
             "description": "Allows you to standardize and centralize the way objects are constructed in your application",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/dependency-injection/tree/v6.4.26"
+                "source": "https://github.com/symfony/dependency-injection/tree/v6.4.31"
             },
             "funding": [
                 {
@@ -1358,7 +1358,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-09-11T09:57:09+00:00"
+            "time": "2025-12-23T13:34:50+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -1429,16 +1429,16 @@
         },
         {
             "name": "symfony/filesystem",
-            "version": "v6.4.24",
+            "version": "v6.4.30",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
-                "reference": "75ae2edb7cdcc0c53766c30b0a2512b8df574bd8"
+                "reference": "441c6b69f7222aadae7cbf5df588496d5ee37789"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/filesystem/zipball/75ae2edb7cdcc0c53766c30b0a2512b8df574bd8",
-                "reference": "75ae2edb7cdcc0c53766c30b0a2512b8df574bd8",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/441c6b69f7222aadae7cbf5df588496d5ee37789",
+                "reference": "441c6b69f7222aadae7cbf5df588496d5ee37789",
                 "shasum": ""
             },
             "require": {
@@ -1475,7 +1475,7 @@
             "description": "Provides basic utilities for the filesystem",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/filesystem/tree/v6.4.24"
+                "source": "https://github.com/symfony/filesystem/tree/v6.4.30"
             },
             "funding": [
                 {
@@ -1495,20 +1495,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-07-10T08:14:14+00:00"
+            "time": "2025-11-26T14:43:45+00:00"
         },
         {
             "name": "symfony/finder",
-            "version": "v6.4.27",
+            "version": "v6.4.31",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/finder.git",
-                "reference": "a1b6aa435d2fba50793b994a839c32b6064f063b"
+                "reference": "5547f2e1f0ca8e2e7abe490156b62da778cfbe2b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/finder/zipball/a1b6aa435d2fba50793b994a839c32b6064f063b",
-                "reference": "a1b6aa435d2fba50793b994a839c32b6064f063b",
+                "url": "https://api.github.com/repos/symfony/finder/zipball/5547f2e1f0ca8e2e7abe490156b62da778cfbe2b",
+                "reference": "5547f2e1f0ca8e2e7abe490156b62da778cfbe2b",
                 "shasum": ""
             },
             "require": {
@@ -1543,7 +1543,7 @@
             "description": "Finds files and directories via an intuitive fluent interface",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/finder/tree/v6.4.27"
+                "source": "https://github.com/symfony/finder/tree/v6.4.31"
             },
             "funding": [
                 {
@@ -1563,7 +1563,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-10-15T18:32:00+00:00"
+            "time": "2025-12-11T14:52:17+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
@@ -2333,16 +2333,16 @@
         },
         {
             "name": "symfony/translation",
-            "version": "v6.4.26",
+            "version": "v6.4.31",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/translation.git",
-                "reference": "c8559fe25c7ee7aa9d28f228903a46db008156a4"
+                "reference": "81579408ecf7dc5aa2d8462a6d5c3a430a80e6f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/translation/zipball/c8559fe25c7ee7aa9d28f228903a46db008156a4",
-                "reference": "c8559fe25c7ee7aa9d28f228903a46db008156a4",
+                "url": "https://api.github.com/repos/symfony/translation/zipball/81579408ecf7dc5aa2d8462a6d5c3a430a80e6f2",
+                "reference": "81579408ecf7dc5aa2d8462a6d5c3a430a80e6f2",
                 "shasum": ""
             },
             "require": {
@@ -2408,7 +2408,7 @@
             "description": "Provides tools to internationalize your application",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/translation/tree/v6.4.26"
+                "source": "https://github.com/symfony/translation/tree/v6.4.31"
             },
             "funding": [
                 {
@@ -2428,7 +2428,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-09-05T18:17:25+00:00"
+            "time": "2025-12-18T11:37:55+00:00"
         },
         {
             "name": "symfony/translation-contracts",
@@ -2696,16 +2696,16 @@
         },
         {
             "name": "twig/twig",
-            "version": "v3.22.0",
+            "version": "v3.22.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/Twig.git",
-                "reference": "4509984193026de413baf4ba80f68590a7f2c51d"
+                "reference": "946ddeafa3c9f4ce279d1f34051af041db0e16f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/4509984193026de413baf4ba80f68590a7f2c51d",
-                "reference": "4509984193026de413baf4ba80f68590a7f2c51d",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/946ddeafa3c9f4ce279d1f34051af041db0e16f2",
+                "reference": "946ddeafa3c9f4ce279d1f34051af041db0e16f2",
                 "shasum": ""
             },
             "require": {
@@ -2759,7 +2759,7 @@
             ],
             "support": {
                 "issues": "https://github.com/twigphp/Twig/issues",
-                "source": "https://github.com/twigphp/Twig/tree/v3.22.0"
+                "source": "https://github.com/twigphp/Twig/tree/v3.22.2"
             },
             "funding": [
                 {
@@ -2771,7 +2771,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-10-29T15:56:47+00:00"
+            "time": "2025-12-14T11:28:47+00:00"
         },
         {
             "name": "voku/portable-ascii",
@@ -2912,21 +2912,21 @@
     "packages-dev": [
         {
             "name": "carthage-software/mago",
-            "version": "1.0.0-rc.2",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/carthage-software/mago.git",
-                "reference": "4b30882a6a9159700687f40d523d50d637797172"
+                "reference": "dcc682d0b12e332e7f22c31d39b7638d8518d413"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/carthage-software/mago/zipball/4b30882a6a9159700687f40d523d50d637797172",
-                "reference": "4b30882a6a9159700687f40d523d50d637797172",
+                "url": "https://api.github.com/repos/carthage-software/mago/zipball/dcc682d0b12e332e7f22c31d39b7638d8518d413",
+                "reference": "dcc682d0b12e332e7f22c31d39b7638d8518d413",
                 "shasum": ""
             },
             "require": {
                 "composer-plugin-api": "^2.6",
-                "php": "~8.1 || ~8.2 || ~8.3 || ~8.4"
+                "php": "~8.1 || ~8.2 || ~8.3 || ~8.4 || ~8.5 || ~8.6"
             },
             "require-dev": {
                 "composer/composer": "^2.8"
@@ -2959,7 +2959,7 @@
             ],
             "support": {
                 "issues": "https://github.com/carthage-software/mago/issues",
-                "source": "https://github.com/carthage-software/mago/tree/1.0.0-rc.2"
+                "source": "https://github.com/carthage-software/mago/tree/1.1.0"
             },
             "funding": [
                 {
@@ -2967,15 +2967,15 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-11-14T05:37:34+00:00"
+            "time": "2026-01-13T09:58:07+00:00"
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.32",
+            "version": "2.1.33",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e126cad1e30a99b137b8ed75a85a676450ebb227",
-                "reference": "e126cad1e30a99b137b8ed75a85a676450ebb227",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/9e800e6bee7d5bd02784d4c6069b48032d16224f",
+                "reference": "9e800e6bee7d5bd02784d4c6069b48032d16224f",
                 "shasum": ""
             },
             "require": {
@@ -3020,25 +3020,25 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-11-11T15:18:17+00:00"
+            "time": "2025-12-05T10:24:31+00:00"
         },
         {
             "name": "rector/rector",
-            "version": "2.2.8",
+            "version": "2.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rectorphp/rector.git",
-                "reference": "303aa811649ccd1d32e51e62d5c85949d01b5f1b"
+                "reference": "9afc1bb43571b25629f353c61a9315b5ef31383a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rectorphp/rector/zipball/303aa811649ccd1d32e51e62d5c85949d01b5f1b",
-                "reference": "303aa811649ccd1d32e51e62d5c85949d01b5f1b",
+                "url": "https://api.github.com/repos/rectorphp/rector/zipball/9afc1bb43571b25629f353c61a9315b5ef31383a",
+                "reference": "9afc1bb43571b25629f353c61a9315b5ef31383a",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.4|^8.0",
-                "phpstan/phpstan": "^2.1.32"
+                "phpstan/phpstan": "^2.1.33"
             },
             "conflict": {
                 "rector/rector-doctrine": "*",
@@ -3072,7 +3072,7 @@
             ],
             "support": {
                 "issues": "https://github.com/rectorphp/rector/issues",
-                "source": "https://github.com/rectorphp/rector/tree/2.2.8"
+                "source": "https://github.com/rectorphp/rector/tree/2.3.1"
             },
             "funding": [
                 {
@@ -3080,7 +3080,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-11-12T18:38:00+00:00"
+            "time": "2026-01-13T15:13:58+00:00"
         }
     ],
     "aliases": [],

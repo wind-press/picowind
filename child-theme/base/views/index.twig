@@ -1,0 +1,8 @@
+{# Child theme override of the main index template #}
+{% extends "parent::index.twig" %}
+
+{% block content %}
+    <div class="child-theme-override">
+        {{ parent() }}
+    </div>
+{% endblock %}
