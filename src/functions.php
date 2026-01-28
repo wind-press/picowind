@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Picowind;
 
 use Picowind\Core\Template;
-use Picowind\Supports\OmniIconSupport;
+use Picowind\Supports\OmniIcon;
 use Timber\Timber;
 
 /**
@@ -125,8 +125,8 @@ function omni_icon(string $iconName, array $attributes = []): string
 {
     $theme = Theme::get_instance();
     $container = $theme->container();
-    /** @var \Picowind\Supports\OmniIconSupport */
-    $omniIcon = $container->get(OmniIconSupport::class);
+    /** @var \Picowind\Supports\OmniIcon */
+    $omniIcon = $container->get(OmniIcon::class);
 
     return $omniIcon->get_icon($iconName, $attributes) ?? '';
 }

@@ -28,7 +28,7 @@ use Picowind\Core\Discovery\Attributes\Service;
  * $omniIcon->get_icon('mdi:home', ['class' => 'icon-large', 'width' => '32', 'height' => '32']);
  */
 #[Service]
-class OmniIconSupport
+class OmniIcon
 {
     /**
      * Check if Omni Icon plugin is installed and activated.
@@ -58,7 +58,7 @@ class OmniIconSupport
             return $container->get(\OmniIcon\Services\IconService::class);
         } catch (\Exception $e) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("OmniIconSupport: Failed to get IconService - {$e->getMessage()}");
+                error_log("OmniIcon: Failed to get IconService - {$e->getMessage()}");
             }
             return null;
         }
@@ -76,7 +76,7 @@ class OmniIconSupport
         // Check if Omni Icon plugin is active
         if (! $this->is_omni_icon_active()) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('OmniIconSupport: Omni Icon plugin is not installed or activated. Please install and activate it to use icon functionality.');
+                error_log('OmniIcon: Omni Icon plugin is not installed or activated. Please install and activate it to use icon functionality.');
             }
             return null;
         }
@@ -106,7 +106,7 @@ class OmniIconSupport
         } catch (\Exception $e) {
             // Log errors in debug mode
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("OmniIconSupport error: {$e->getMessage()}");
+                error_log("OmniIcon error: {$e->getMessage()}");
             }
             return null;
         }

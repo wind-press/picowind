@@ -44,6 +44,10 @@ class Blocks
                 continue;
             }
 
+            if (! is_dir((string) $dir_path)) {
+                continue;
+            }
+
             foreach (new DirectoryIterator($dir_path) as $dir) {
                 if ($dir->isDot()) {
                     continue;

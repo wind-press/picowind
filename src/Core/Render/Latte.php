@@ -74,7 +74,7 @@ class Latte
     private function registerOmniIconFunction(): void
     {
         // Register function syntax: {omni_icon('mdi:home', ['class' => 'icon'])}
-        // Uses Omni Icon plugin via OmniIconSupport wrapper
+        // Uses Omni Icon plugin via OmniIcon wrapper
         $this->latte->addFunction('omni_icon', function (string $iconName, array $attributes = []) {
             $output = \Picowind\omni_icon($iconName, $attributes);
             return new Html($output);

@@ -17,7 +17,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use WP_Theme;
 
 #[Service]
-class ChildThemeExtractor
+class ChildTheme
 {
     private const CHILD_THEME_BASE_NAME = 'picowind-child';
 
@@ -32,29 +32,30 @@ class ChildThemeExtractor
     }
 
     #[Hook(name: 'after_switch_theme', priority: 1_000_001, accepted_args: 2)]
-    public function extract_on_theme_activation(string $new_name, WP_Theme $new_theme): void
+    public function extract_theme_on_activation(string $old_name, WP_Theme $old_theme): void
     {
-        if (! $this->is_parent_theme_activated($new_theme)) {
+        $currentTheme = wp_get_theme();
+
+        if ($this->is_picowind_child_theme($currentTheme->get_stylesheet())) {
             return;
         }
 
-        $this->extract();
-    }
+        if (! $this->is_parent_activated($currentTheme)) {
+            return;
+        }
 
-    public function extract(): void
-    {
         if (! $this->filesystem->exists($this->sourcePath)) {
             throw new RuntimeException('Source child theme directory not found: ' . $this->sourcePath);
         }
 
-        $childThemeName = $this->find_or_create_child_theme();
+        $childThemeName = $this->find_or_create();
 
-        switch_theme($childThemeName);
-
-        do_action('picowind_child_theme_extracted', $childThemeName);
+        if ($childThemeName !== $currentTheme->get_stylesheet()) {
+            switch_theme($childThemeName);
+        }
     }
 
-    private function find_or_create_child_theme(): string
+    private function find_or_create(): string
     {
         $themeName = self::CHILD_THEME_BASE_NAME;
         $counter = 0;
@@ -73,7 +74,7 @@ class ChildThemeExtractor
         return $themeName;
     }
 
-    private function is_parent_theme_activated(WP_Theme $theme): bool
+    private function is_parent_activated(WP_Theme $theme): bool
     {
         return $theme->get_template() === 'picowind' && $theme->get_stylesheet() === 'picowind';
     }

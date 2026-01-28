@@ -76,7 +76,7 @@ class Blade
     {
         $this->bladeBlade->directive('omni_icon', function ($expression) {
             // Wrap the expression in array brackets to handle multiple arguments
-            // Uses Omni Icon plugin via OmniIconSupport wrapper
+            // Uses Omni Icon plugin via OmniIcon wrapper
             return "<?php
                 \$__omniIconArgs = [{$expression}];
                 \$__iconName = isset(\$__omniIconArgs[0]) ? \$__omniIconArgs[0] : '';
