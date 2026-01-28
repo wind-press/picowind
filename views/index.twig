@@ -391,7 +391,7 @@
 						{% elseif site.icon is not empty %}
 							<img src="{{ site.icon }}" alt="{{ site.title }} logo">
 						{% else %}
-							{{ omni_icon('lucide:origami', {class: '', width: 64, height: 64}) }}
+							{{ omni_icon('lucide:origami', {width: 64, height: 64}) }}
 						{% endif %}
 					</div>
 
@@ -432,9 +432,7 @@
 							<h3>Why am I seeing this?</h3>
 						</div>
 						<p>
-							You're seeing this default page because no child theme is active or the
-							<code style="display: inline; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 0.1rem 0.3rem; border-radius: 4px;">index.php</code>
-							file hasn't been customized.
+							You're seeing this default page because no child theme is active.
 						</p>
 					</div>
 				</div>
@@ -444,10 +442,7 @@
 					{{ omni_icon('tabler:square-chevrons-right', {class: '', width: 24, height: 24}) }}
 					<span>
 						{% if user is not null and user.can('switch_themes') %}
-							<a target="_blank" href="{{ function('get_admin_url') }}themes.php">Use a child theme</a>
-							or override the theme's
-							<code style="display:inline;">index.php</code>
-							file to replace this placeholder page.
+							<a target="_blank" href="{{ function('get_admin_url') }}themes.php">Use a child theme</a> to start customizing your site.
 						{% else %}
 							Please contact the site administrator.
 						{% endif %}

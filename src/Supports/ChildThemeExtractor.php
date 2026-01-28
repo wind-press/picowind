@@ -23,13 +23,15 @@ class ChildThemeExtractor
 
     private string $sourcePath;
 
-    public function __construct(
-        private Filesystem $filesystem,
-    ) {
+    private Filesystem $filesystem;
+
+    public function __construct()
+    {
         $this->sourcePath = get_template_directory() . '/child-theme/base';
+        $this->filesystem = new Filesystem();
     }
 
-    #[Hook(name: 'after_switch_theme', priority: 10, accepted_args: 2)]
+    #[Hook(name: 'after_switch_theme', priority: 1_000_001, accepted_args: 2)]
     public function extract_on_theme_activation(string $new_name, WP_Theme $new_theme): void
     {
         if (! $this->is_parent_theme_activated($new_theme)) {

@@ -92,6 +92,15 @@ class OmniIconSupport
                 return null;
             }
 
+            // Convert boolean and numeric attributes to string representation
+            foreach ($attributes as $key => $value) {
+                if (is_bool($value)) {
+                    $attributes[$key] = $value ? 'true' : 'false';
+                } elseif (is_int($value) || is_float($value)) {
+                    $attributes[$key] = (string) $value;
+                }
+            }
+
             // Use Omni Icon plugin's IconService to render the icon
             return $iconService->get_icon($iconName, $attributes);
         } catch (\Exception $e) {
