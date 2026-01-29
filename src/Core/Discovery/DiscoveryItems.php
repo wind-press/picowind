@@ -31,8 +31,10 @@ final class DiscoveryItems implements IteratorAggregate
     {
         $allItems = [];
 
-        foreach ($this->items as $item) {
-            $allItems = array_merge($allItems, $item);
+        foreach ($this->items as $items) {
+            foreach ($items as $item) {
+                $allItems[] = $item;
+            }
         }
 
         return $allItems;
