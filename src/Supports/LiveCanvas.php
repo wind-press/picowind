@@ -26,6 +26,10 @@ class LiveCanvas
         return true;
     }
 
+    /**
+     * Define LiveCanvas editor configuration
+     * @link https://github.com/livecanvas-team/picostrap5/blob/0b4e60e32664941261ff3b5be1ba29a7ce2be424/inc/livecanvas-config.php
+     */
     public static function lc_define_editor_config($key)
     {
         $data = [
