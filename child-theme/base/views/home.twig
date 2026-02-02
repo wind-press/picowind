@@ -2,18 +2,18 @@
 
 {% block content %}
 
-{# Hero Section #}
-<section class="py-12 text-center bg-base-200">
+{# Blog Home Hero Section #}
+<section class="py-12 text-center">
     <div class="container mx-auto px-4">
-        <h1 class="text-4xl font-bold mb-4">{{ site.name }}</h1>
-        <div class="text-lg text-base-content/70 max-w-2xl mx-auto">
+        <h1 class="text-5xl font-bold mb-4">{{ site.name }}</h1>
+        <div class="text-xl text-base-content/70 max-w-2xl mx-auto">
             {{ site.description }}
         </div>
     </div>
 </section>
 
 {# Posts Grid Section #}
-<section class="py-12">
+<section class="py-12 bg-base-200">
     <div class="container mx-auto px-4 max-w-7xl">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for post in posts %}

@@ -25,4 +25,13 @@ class LiveCanvas
     {
         return true;
     }
+
+    public static function lc_define_editor_config($key)
+    {
+        $data = [
+            'config_file_slug' => 'daisyui-5',
+        ];
+
+        return $data[$key];
+    }
 }
