@@ -45,9 +45,9 @@ pnpm run dev
 
 Picowind supports three template engines:
 
-- Twig
-- Blade
-- Latte
+- [Twig](https://twig.symfony.com/)
+- [Blade](https://laravel.com/docs/blade)
+- [Latte](https://latte.nette.org/)
 
 ### Usage
 
@@ -57,6 +57,13 @@ You can use the PHP functions to render templates and strings with different eng
 
 - `Picowind\render($paths, $context, $engine, $print, $silent)` - Render template file
 - `Picowind\render_string($string, $context, $engine, $print)` - Render template string
+
+When rendering templates, Picowind will automatically detect the engine based on the file extension:
+
+- `.twig` - Twig
+- `.blade.php`, `.php`, or no extension - Blade
+- `.latte` - Latte
+
 
 ##### Twig
 ```php
