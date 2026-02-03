@@ -110,15 +110,16 @@ class LiveCanvas
 
         $plugins = get_plugins();
 
+        /**
+         * @var string $file
+         */
         foreach ($plugins as $file => $data) {
             $directory = dirname($file);
 
             if ($directory === $slug || basename($file, '.php') === $slug) {
                 return $file;
             }
-        }
 
-        foreach ($plugins as $file => $data) {
             if (! empty($data['TextDomain']) && $data['TextDomain'] === $slug) {
                 return $file;
             }
