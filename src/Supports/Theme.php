@@ -15,7 +15,74 @@ class Theme
     #[Hook('after_setup_theme', 'action')]
     public function setup_theme_supports(): void
     {
-        // add_theme_support()
+        /*
+         * Make theme available for translation.
+         */
+        load_theme_textdomain('picowind', get_template_directory() . '/languages');
+
+        // Add default posts and comments RSS feed links to head.
+        add_theme_support('automatic-feed-links');
+
+        /*
+         * Let WordPress manage the document title.
+         */
+        add_theme_support('title-tag');
+
+        /*
+         * Enable support for Post Thumbnails on posts and pages.
+         */
+        add_theme_support('post-thumbnails');
+
+        // This theme uses wp_nav_menu() in locations.
+        register_nav_menus([
+            'primary' => __('Primary Menu', 'picowind'),
+            'secondary' => __('Secondary Menu', 'picowind'),
+        ]);
+
+        /*
+         * Switch default core markup for search form, comment form, and comments
+         * to output valid HTML5.
+         */
+        add_theme_support('html5', [
+            'search-form',
+            'comment-form',
+            'comment-list',
+            'gallery',
+            'caption',
+            'script',
+            'style',
+        ]);
+
+        /*
+         * Adding support for Widget edit icons in customizer
+         */
+        add_theme_support('customize-selective-refresh-widgets');
+
+        /*
+         * Enable support for Post Formats.
+         */
+        add_theme_support('post-formats', [
+            'aside',
+            'image',
+            'video',
+            'quote',
+            'link',
+        ]);
+
+        // Set up the WordPress core custom background feature.
+        add_theme_support('custom-background', apply_filters('f!picowind/theme/support:custom_background', [
+            'default-color' => 'ffffff',
+            'default-image' => '',
+        ]));
+
+        // Set up the WordPress Theme logo feature.
+        add_theme_support('custom-logo');
+
+        // Add support for responsive embedded content.
+        add_theme_support('responsive-embeds');
+
+        // Full width content support
+        add_theme_support('align-wide');
     }
 
     #[Hook('admin_menu', 'action')]

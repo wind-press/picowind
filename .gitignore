@@ -38,3 +38,5 @@ config.codekit3
 # Auto-generated type declarations
 auto-imports.d.ts
 components.d.ts
+
+opencode.json

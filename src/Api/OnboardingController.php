@@ -8,6 +8,7 @@ use Exception;
 use Picowind\Core\Discovery\Attributes\Controller;
 use Picowind\Core\Discovery\Attributes\Route;
 use Picowind\Utils\Config;
+use Symfony\Component\Filesystem\Filesystem;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -45,7 +46,7 @@ final class OnboardingController
     }
 
     /**
-     * Get available child themes from catalog
+     * Get available bundled child themes
      */
     #[Route(
         path: '/themes',
@@ -55,54 +56,7 @@ final class OnboardingController
     public function getAvailableThemes(WP_REST_Request $request): WP_REST_Response
     {
         try {
-            // Dummy data for now
-            $themes = [
-                [
-                    'id' => 'tw',
-                    'name' => 'TW',
-                    'title' => 'Tailwind CSS Child Theme',
-                    'description' => 'A modern child theme built with Tailwind CSS utility-first framework',
-                    'version' => '1.0.0',
-                    'author' => 'Picowind',
-                    'thumbnail' => '',
-                    'downloadUrl' => 'https://example.com/themes/picowind-tw.zip',
-                    'features' => [
-                        'Tailwind CSS integration',
-                        'Responsive design',
-                        'Dark mode support',
-                    ],
-                ],
-                [
-                    'id' => 'bs',
-                    'name' => 'BS',
-                    'title' => 'Bootstrap Child Theme',
-                    'description' => 'A robust child theme powered by Bootstrap framework',
-                    'version' => '1.0.0',
-                    'author' => 'Picowind',
-                    'thumbnail' => '',
-                    'downloadUrl' => 'https://example.com/themes/picowind-bs.zip',
-                    'features' => [
-                        'Bootstrap 5 integration',
-                        'Grid system',
-                        'Component library',
-                    ],
-                ],
-                [
-                    'id' => 'pure',
-                    'name' => 'Pure',
-                    'title' => 'Pure CSS Child Theme',
-                    'description' => 'A minimalist child theme',
-                    'version' => '1.0.0',
-                    'author' => 'Picowind',
-                    'thumbnail' => '',
-                    'downloadUrl' => 'https://example.com/themes/picowind-pure.zip',
-                    'features' => [
-                        'Minimal CSS footprint',
-                        'Fast loading',
-                        'Clean design',
-                    ],
-                ],
-            ];
+            $themes = $this->getBundledThemes();
 
             return new WP_REST_Response([
                 'success' => true,
@@ -117,7 +71,32 @@ final class OnboardingController
     }
 
     /**
-     * Install and activate a child theme
+     * Get recommended plugins
+     */
+    #[Route(
+        path: '/plugins',
+        methods: 'GET',
+        permission_callback: 'manage_options',
+    )]
+    public function getRecommendedPlugins(WP_REST_Request $request): WP_REST_Response
+    {
+        try {
+            $plugins = $this->getRecommendedPluginsWithStatus();
+
+            return new WP_REST_Response([
+                'success' => true,
+                'data' => $plugins,
+            ], 200);
+        } catch (Exception $e) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Install a bundled child theme
      */
     #[Route(
         path: '/install-theme',
@@ -137,27 +116,31 @@ final class OnboardingController
         $themeId = $request->get_param('themeId');
 
         try {
-            // Get available themes to find download URL
-            $availableThemes = $this->getThemesCatalog();
-            $themeData = null;
+            $bundledThemes = $this->getBundledThemesCatalog();
 
-            foreach ($availableThemes as $theme) {
-                if ($theme['id'] === $themeId) {
-                    $themeData = $theme;
-                    break;
-                }
-            }
-
-            if (! $themeData) {
+            if (! isset($bundledThemes[$themeId])) {
                 return new WP_REST_Response([
                     'success' => false,
-                    'message' => 'Theme not found in catalog',
+                    'message' => 'Theme not found in bundled catalog',
                 ], 404);
             }
 
-            // Download and install the theme
-            $downloadUrl = $themeData['downloadUrl'];
-            $installResult = $this->downloadAndInstallTheme($downloadUrl);
+            $themeData = $bundledThemes[$themeId];
+            $installedTheme = $this->findInstalledTheme(wp_get_themes(), $themeData);
+
+            if ($installedTheme) {
+                return new WP_REST_Response([
+                    'success' => true,
+                    'message' => 'Theme is already installed',
+                    'data' => [
+                        'installed' => true,
+                        'themeSlug' => $installedTheme->get_stylesheet(),
+                        'theme' => $this->stripBundledThemePath($themeData),
+                    ],
+                ], 200);
+            }
+
+            $installResult = $this->installBundledTheme($themeData);
 
             if (is_wp_error($installResult)) {
                 return new WP_REST_Response([
@@ -166,31 +149,16 @@ final class OnboardingController
                 ], 500);
             }
 
-            // Get the installed theme slug
-            $themeSlug = $installResult['destination_name'];
-
-            // Activate the theme
-            $activationResult = $this->activateTheme($themeSlug);
-
-            if (is_wp_error($activationResult)) {
-                return new WP_REST_Response([
-                    'success' => false,
-                    'message' => $activationResult->get_error_message(),
-                ], 500);
-            }
-
             // Store selected theme in config
             Config::set('onboarding.selectedTheme', $themeId);
 
             return new WP_REST_Response([
                 'success' => true,
-                'message' => 'Theme installed and activated successfully',
+                'message' => 'Theme installed successfully',
                 'data' => [
-                    'downloaded' => true,
                     'installed' => true,
-                    'activated' => true,
-                    'themeSlug' => $themeSlug,
-                    'theme' => $themeData,
+                    'themeSlug' => $installResult['themeSlug'],
+                    'theme' => $this->stripBundledThemePath($themeData),
                 ],
             ], 200);
         } catch (Exception $e) {
@@ -202,55 +170,266 @@ final class OnboardingController
     }
 
     /**
-     * Download and install a theme from URL
+     * Activate a bundled child theme
      */
-    private function downloadAndInstallTheme(string $downloadUrl)
+    #[Route(
+        path: '/activate-theme',
+        methods: 'POST',
+        permission_callback: 'manage_options',
+        args: [
+            'themeSlug' => [
+                'required' => true,
+                'type' => 'string',
+                'description' => 'The theme slug to activate',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+        ],
+    )]
+    public function activateTheme(WP_REST_Request $request): WP_REST_Response
     {
-        // Include required WordPress files
-        require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-        require_once ABSPATH . 'wp-admin/includes/file.php';
-        require_once ABSPATH . 'wp-admin/includes/theme.php';
+        $themeSlug = $request->get_param('themeSlug');
 
-        // Create a custom skin to suppress output
-        $skin = new \WP_Ajax_Upgrader_Skin();
+        try {
+            $activationResult = $this->activateThemeSlug($themeSlug);
 
-        // Create upgrader instance
-        $upgrader = new \Theme_Upgrader($skin);
+            if (is_wp_error($activationResult)) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => $activationResult->get_error_message(),
+                ], 500);
+            }
 
-        // Download and install
-        $result = $upgrader->install($downloadUrl);
+            Config::set('onboarding.selectedTheme', $themeSlug);
 
-        if (is_wp_error($result)) {
-            return $result;
+            return new WP_REST_Response([
+                'success' => true,
+                'message' => 'Theme activated successfully',
+                'data' => [
+                    'activated' => true,
+                    'themeSlug' => $themeSlug,
+                    'activeTheme' => $this->getActiveChildTheme(),
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
+    }
 
-        if (! $result) {
-            return new \WP_Error('installation_failed', 'Theme installation failed');
+    /**
+     * Install a recommended plugin
+     */
+    #[Route(
+        path: '/install-plugin',
+        methods: 'POST',
+        permission_callback: 'manage_options',
+        args: [
+            'slug' => [
+                'required' => true,
+                'type' => 'string',
+                'description' => 'The plugin slug to install',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+        ],
+    )]
+    public function installPlugin(WP_REST_Request $request): WP_REST_Response
+    {
+        $slug = $request->get_param('slug');
+
+        try {
+            $catalog = $this->getRecommendedPluginsCatalog();
+            $plugin = $catalog[$slug] ?? null;
+
+            if (! $plugin) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => 'Plugin is not available for installation',
+                ], 404);
+            }
+
+            if (! $this->canInstallRecommendedPlugin($plugin)) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => 'Plugin is not available for installation',
+                ], 404);
+            }
+
+            $existingFile = $this->getPluginFileBySlug($slug);
+
+            if ($existingFile) {
+                return new WP_REST_Response([
+                    'success' => true,
+                    'message' => 'Plugin is already installed',
+                    'data' => [
+                        'installed' => true,
+                        'active' => $this->isPluginActive($existingFile),
+                    ],
+                ], 200);
+            }
+
+            require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+            require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+
+            $pluginInfo = plugins_api('plugin_information', [
+                'slug' => $slug,
+                'fields' => [
+                    'sections' => false,
+                    'versions' => false,
+                ],
+            ]);
+
+            if (is_wp_error($pluginInfo)) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => $pluginInfo->get_error_message(),
+                ], 500);
+            }
+
+            $skin = new \WP_Ajax_Upgrader_Skin();
+            $upgrader = new \Plugin_Upgrader($skin);
+            $result = $upgrader->install($pluginInfo->download_link);
+
+            if (is_wp_error($result)) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => $result->get_error_message(),
+                ], 500);
+            }
+
+            if (! $result) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => 'Plugin installation failed',
+                ], 500);
+            }
+
+            $pluginFile = $this->getPluginFileBySlug($slug);
+
+            if (! $pluginFile) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => 'Plugin installation completed, but plugin file could not be found',
+                ], 500);
+            }
+
+            return new WP_REST_Response([
+                'success' => true,
+                'message' => 'Plugin installed successfully',
+                'data' => [
+                    'installed' => true,
+                    'active' => $this->isPluginActive($pluginFile),
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
+    }
 
-        // Get the theme destination
-        $theme_info = $upgrader->theme_info();
+    /**
+     * Activate a recommended plugin
+     */
+    #[Route(
+        path: '/activate-plugin',
+        methods: 'POST',
+        permission_callback: 'manage_options',
+        args: [
+            'slug' => [
+                'required' => true,
+                'type' => 'string',
+                'description' => 'The plugin slug to activate',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+        ],
+    )]
+    public function activatePlugin(WP_REST_Request $request): WP_REST_Response
+    {
+        $slug = $request->get_param('slug');
 
-        if (! $theme_info) {
-            return new \WP_Error('theme_info_failed', 'Unable to get theme information');
+        try {
+            $catalog = $this->getRecommendedPluginsCatalog();
+            $plugin = $catalog[$slug] ?? null;
+
+            if (! $plugin) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => 'Plugin is not available for activation',
+                ], 404);
+            }
+
+            if (! $this->canInstallRecommendedPlugin($plugin)) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => 'Plugin is not available for activation',
+                ], 404);
+            }
+
+            $pluginFile = $this->getPluginFileBySlug($slug);
+
+            if (! $pluginFile) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => 'Plugin is not installed',
+                ], 404);
+            }
+
+            if ($this->isPluginActive($pluginFile)) {
+                return new WP_REST_Response([
+                    'success' => true,
+                    'message' => 'Plugin is already active',
+                    'data' => [
+                        'installed' => true,
+                        'active' => true,
+                    ],
+                ], 200);
+            }
+
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+            $activationResult = activate_plugin($pluginFile);
+
+            if (is_wp_error($activationResult)) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => $activationResult->get_error_message(),
+                ], 500);
+            }
+
+            return new WP_REST_Response([
+                'success' => true,
+                'message' => 'Plugin activated successfully',
+                'data' => [
+                    'installed' => true,
+                    'active' => true,
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
-
-        return [
-            'success' => true,
-            'destination_name' => $theme_info->get_stylesheet(),
-        ];
     }
 
     /**
      * Activate a theme by slug
      */
-    private function activateTheme(string $themeSlug)
+    private function activateThemeSlug(string $themeSlug)
     {
         // Verify theme exists
         $theme = wp_get_theme($themeSlug);
 
         if (! $theme->exists()) {
             return new \WP_Error('theme_not_found', 'Theme does not exist');
+        }
+
+        if (! $this->isPicowindChildTheme($theme)) {
+            return new \WP_Error('invalid_theme', 'Theme is not a Picowind child theme');
         }
 
         // Switch to the new theme
@@ -341,56 +520,328 @@ final class OnboardingController
     }
 
     /**
-     * Get themes catalog (same as getAvailableThemes but returns array)
+     * Get bundled themes metadata keyed by bundle ID
      */
-    private function getThemesCatalog(): array
+    private function getBundledThemesCatalog(): array
+    {
+        $bundledDir = trailingslashit(get_template_directory()) . 'child-theme';
+
+        if (! is_dir($bundledDir)) {
+            return [];
+        }
+
+        $entries = scandir($bundledDir);
+
+        if ($entries === false) {
+            return [];
+        }
+
+        $entries = array_values(array_filter($entries, static function (string $entry) use ($bundledDir) {
+            if ($entry[0] === '.') {
+                return false;
+            }
+
+            return is_dir($bundledDir . '/' . $entry);
+        }));
+
+        $themes = [];
+
+        foreach ($entries as $entry) {
+            $themePath = $bundledDir . '/' . $entry;
+            $stylePath = $themePath . '/style.css';
+
+            if (! file_exists($stylePath)) {
+                continue;
+            }
+
+            $data = get_file_data($stylePath, [
+                'Name' => 'Theme Name',
+                'ThemeURI' => 'Theme URI',
+                'Description' => 'Description',
+                'Author' => 'Author',
+                'Version' => 'Version',
+                'Template' => 'Template',
+                'TextDomain' => 'Text Domain',
+                'Tags' => 'Tags',
+            ], 'theme');
+
+            $themes[$entry] = [
+                'id' => $entry,
+                'path' => $themePath,
+                'name' => $data['Name'] ?: $entry,
+                'description' => $data['Description'] ?? '',
+                'version' => $data['Version'] ?? '',
+                'author' => $data['Author'] ?? '',
+                'themeUri' => $data['ThemeURI'] ?? '',
+                'template' => $data['Template'] ?? '',
+                'textDomain' => $data['TextDomain'] ?? '',
+                'tags' => $this->parseThemeTags($data['Tags'] ?? ''),
+            ];
+        }
+
+        return $themes;
+    }
+
+    /**
+     * Recommended plugins catalog keyed by slug
+     */
+    private function getRecommendedPluginsCatalog(): array
     {
         return [
-            [
-                'id' => 'tw',
-                'name' => 'TW',
-                'title' => 'Tailwind CSS Child Theme',
-                'description' => 'A modern child theme built with Tailwind CSS utility-first framework',
-                'version' => '1.0.0',
-                'author' => 'Picowind',
-                'thumbnail' => '',
-                'downloadUrl' => 'https://example.com/themes/picowind-tw.zip',
-                'features' => [
-                    'Tailwind CSS integration',
-                    'Responsive design',
-                    'Dark mode support',
-                ],
+            'windpress' => [
+                'id' => 'windpress',
+                'name' => 'WindPress',
+                'slug' => 'windpress',
+                'source' => 'wporg',
+                'url' => 'https://wordpress.org/plugins/windpress/',
+                'description' => 'Tailwind CSS integration for the block editor, page builders, and themes.',
             ],
-            [
-                'id' => 'bs',
-                'name' => 'BS',
-                'title' => 'Bootstrap Child Theme',
-                'description' => 'A robust child theme powered by Bootstrap framework',
-                'version' => '1.0.0',
-                'author' => 'Picowind',
-                'thumbnail' => '',
-                'downloadUrl' => 'https://example.com/themes/picowind-bs.zip',
-                'features' => [
-                    'Bootstrap 5 integration',
-                    'Grid system',
-                    'Component library',
-                ],
+            'omni-icon' => [
+                'id' => 'omni-icon',
+                'name' => 'Omni Icon',
+                'slug' => 'omni-icon',
+                'source' => 'wporg',
+                'url' => 'https://wordpress.org/plugins/omni-icon/',
+                'description' => 'Unified icon management with Iconify, local uploads, and bundled icons.',
             ],
-            [
-                'id' => 'pure',
-                'name' => 'Pure',
-                'title' => 'Pure CSS Child Theme',
-                'description' => 'A lightweight child theme using Pure CSS',
-                'version' => '1.0.0',
-                'author' => 'Picowind',
-                'thumbnail' => '',
-                'downloadUrl' => 'https://example.com/themes/picowind-pure.zip',
-                'features' => [
-                    'Minimal CSS footprint',
-                    'Fast loading',
-                    'Clean design',
-                ],
+            'livecanvas' => [
+                'id' => 'livecanvas',
+                'name' => 'LiveCanvas',
+                'slug' => 'livecanvas',
+                'source' => 'external',
+                'url' => 'https://livecanvas.com/',
+                'description' => 'Professional page builder for WordPress with front-end editing.',
             ],
         ];
+    }
+
+    /**
+     * Get recommended plugins with installed and active status
+     */
+    private function getRecommendedPluginsWithStatus(): array
+    {
+        $catalog = $this->getRecommendedPluginsCatalog();
+        $plugins = [];
+
+        foreach ($catalog as $plugin) {
+            $pluginFile = $this->getPluginFileBySlug($plugin['slug']);
+            $plugins[] = array_merge($plugin, [
+                'installed' => $pluginFile !== null,
+                'active' => $pluginFile ? $this->isPluginActive($pluginFile) : false,
+            ]);
+        }
+
+        return array_values($plugins);
+    }
+
+    private function getPluginFileBySlug(string $slug): ?string
+    {
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+        $plugins = get_plugins();
+
+        foreach ($plugins as $file => $data) {
+            $directory = dirname($file);
+
+            if ($directory === $slug || basename($file, '.php') === $slug) {
+                return $file;
+            }
+        }
+
+        foreach ($plugins as $file => $data) {
+            if (! empty($data['TextDomain']) && $data['TextDomain'] === $slug) {
+                return $file;
+            }
+        }
+
+        return null;
+    }
+
+    private function canInstallRecommendedPlugin(array $plugin): bool
+    {
+        $source = $plugin['source'] ?? '';
+        $slug = $plugin['slug'] ?? '';
+
+        return $source === 'wporg' || $slug === 'livecanvas';
+    }
+
+    private function isPluginActive(string $pluginFile): bool
+    {
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+        return is_plugin_active($pluginFile);
+    }
+
+    /**
+     * Get bundled themes with install and active status
+     */
+    private function getBundledThemes(): array
+    {
+        $bundledThemes = $this->getBundledThemesCatalog();
+        $installedThemes = wp_get_themes();
+        $activeSlug = wp_get_theme()->get_stylesheet();
+        $themes = [];
+
+        foreach ($bundledThemes as $theme) {
+            $installedTheme = $this->findInstalledTheme($installedThemes, $theme);
+            $installedSlug = $installedTheme ? $installedTheme->get_stylesheet() : null;
+
+            $themes[] = array_merge($this->stripBundledThemePath($theme), [
+                'installed' => (bool) $installedTheme,
+                'active' => $installedTheme ? $installedSlug === $activeSlug : false,
+                'installedSlug' => $installedSlug,
+            ]);
+        }
+
+        usort($themes, static fn (array $left, array $right) => strcasecmp($left['name'], $right['name']));
+
+        return $themes;
+    }
+
+    /**
+     * Install a bundled child theme by copying it into the themes directory
+     */
+    private function installBundledTheme(array $bundledTheme)
+    {
+        $sourcePath = $bundledTheme['path'] ?? '';
+
+        if ($sourcePath === '' || ! is_dir($sourcePath)) {
+            return new \WP_Error('bundle_missing', 'Bundled theme directory not found');
+        }
+
+        if (! empty($bundledTheme['template']) && $bundledTheme['template'] !== 'picowind') {
+            return new \WP_Error('invalid_template', 'Bundled theme template must be picowind');
+        }
+
+        $baseSlug = $this->resolveBundledThemeSlug($bundledTheme);
+        $themeSlug = $this->generateUniqueThemeSlug($baseSlug);
+        $destination = trailingslashit(get_theme_root()) . $themeSlug;
+
+        $filesystem = new Filesystem();
+
+        try {
+            $filesystem->mirror($sourcePath, $destination);
+        } catch (Exception $e) {
+            return new \WP_Error('installation_failed', $e->getMessage());
+        }
+
+        wp_clean_themes_cache();
+        $theme = wp_get_theme($themeSlug);
+
+        if (! $theme->exists()) {
+            return new \WP_Error('theme_not_found', 'Theme installation failed');
+        }
+
+        return [
+            'success' => true,
+            'themeSlug' => $themeSlug,
+        ];
+    }
+
+    /**
+     * Find an installed theme matching a bundled theme
+     */
+    private function findInstalledTheme(array $installedThemes, array $bundledTheme): ?\WP_Theme
+    {
+        $textDomain = $bundledTheme['textDomain'] ?? '';
+        $name = $bundledTheme['name'] ?? '';
+        $fallbackSlug = $this->resolveBundledThemeSlug($bundledTheme);
+
+        $activeTheme = wp_get_theme();
+
+        if ($this->isPicowindChildTheme($activeTheme)) {
+            if ($textDomain !== '' && $activeTheme->get('TextDomain') === $textDomain) {
+                return $activeTheme;
+            }
+
+            if ($name !== '' && $activeTheme->get('Name') === $name) {
+                return $activeTheme;
+            }
+        }
+
+        if ($textDomain !== '') {
+            foreach ($installedThemes as $theme) {
+                if ($theme->get('TextDomain') === $textDomain && $this->isPicowindChildTheme($theme)) {
+                    return $theme;
+                }
+            }
+        }
+
+        if ($fallbackSlug !== '' && isset($installedThemes[$fallbackSlug])) {
+            $candidate = $installedThemes[$fallbackSlug];
+
+            if ($this->isPicowindChildTheme($candidate)) {
+                return $candidate;
+            }
+        }
+
+        if ($name !== '') {
+            foreach ($installedThemes as $theme) {
+                if ($theme->get('Name') === $name && $this->isPicowindChildTheme($theme)) {
+                    return $theme;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function stripBundledThemePath(array $bundledTheme): array
+    {
+        unset($bundledTheme['path']);
+
+        return $bundledTheme;
+    }
+
+    private function resolveBundledThemeSlug(array $bundledTheme): string
+    {
+        $slugSource = $bundledTheme['textDomain'] ?? '';
+
+        if ($slugSource === '') {
+            $slugSource = $bundledTheme['name'] ?? '';
+        }
+
+        if ($slugSource === '') {
+            $slugSource = $bundledTheme['id'] ?? '';
+        }
+
+        $slug = sanitize_title($slugSource);
+
+        if ($slug === '') {
+            $slug = sanitize_title($bundledTheme['id'] ?? 'picowind-child');
+        }
+
+        return $slug === '' ? 'picowind-child' : $slug;
+    }
+
+    private function generateUniqueThemeSlug(string $baseSlug): string
+    {
+        $slug = $baseSlug;
+        $counter = 1;
+
+        while (is_dir(trailingslashit(get_theme_root()) . $slug)) {
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    private function parseThemeTags(string $tags): array
+    {
+        if ($tags === '') {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $tags))));
+    }
+
+    private function isPicowindChildTheme(\WP_Theme $theme): bool
+    {
+        if (! $theme->exists()) {
+            return false;
+        }
+
+        return $theme->get_template() === 'picowind' && $theme->get_stylesheet() !== 'picowind';
     }
 }

@@ -1,193 +1,281 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useOnboardingStore } from '../stores/onboarding';
+import { ref, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useOnboardingStore } from '../stores/onboarding';
 
-const router = useRouter();
 const onboardingStore = useOnboardingStore();
+const { status, bundledThemes, recommendedPlugins, error } = storeToRefs(onboardingStore);
 
-// Destructure store state and getters
-const {
-  loading,
-  installing,
-  status,
-  availableThemes,
-  selectedThemeId,
-  error,
-  isCompleted,
-  hasChildTheme,
-} = storeToRefs(onboardingStore);
+const pageLoading = ref(true);
+const actionState = ref<{ id: string; type: 'install' | 'activate' } | null>(null);
+const pluginActionState = ref<{ slug: string; type: 'install' | 'activate' } | null>(null);
+const successMessage = ref<string | null>(null);
 
-const currentStep = ref<'check' | 'select' | 'install' | 'complete'>('check');
+const isBusy = computed(() => actionState.value !== null || pluginActionState.value !== null);
+const hasActiveChildTheme = computed(() => Boolean(status.value?.childTheme));
+const activeChildThemeName = computed(() => status.value?.childTheme?.name ?? '');
 
 onMounted(async () => {
-  await checkOnboardingStatus();
+  try {
+    await refresh();
+  } finally {
+    pageLoading.value = false;
+  }
 });
 
-async function checkOnboardingStatus() {
+async function refresh() {
   try {
-    await onboardingStore.fetchStatus();
-
-    if (isCompleted.value) {
-      currentStep.value = 'complete';
-    } else if (hasChildTheme.value) {
-      currentStep.value = 'complete';
-      await onboardingStore.complete();
-    } else {
-      currentStep.value = 'select';
-      await onboardingStore.fetchThemes();
-    }
+    await Promise.all([
+      onboardingStore.fetchStatus(),
+      onboardingStore.fetchThemes(),
+      onboardingStore.fetchPlugins(),
+    ]);
   } catch (err) {
-    // Error is already set in the store
-    console.error('Failed to check onboarding status:', err);
+    // Error is handled by the store
   }
 }
 
-async function installSelectedTheme() {
-  if (!selectedThemeId.value) {
-    onboardingStore.error = 'Please select a theme';
+function isAction(themeId: string, type: 'install' | 'activate') {
+  return actionState.value?.id === themeId && actionState.value?.type === type;
+}
+
+function isPluginAction(slug: string, type: 'install' | 'activate') {
+  return pluginActionState.value?.slug === slug && pluginActionState.value?.type === type;
+}
+
+async function installTheme(themeId: string) {
+  successMessage.value = null;
+  actionState.value = { id: themeId, type: 'install' };
+
+  try {
+    const response = await onboardingStore.installTheme(themeId);
+    successMessage.value = response?.message || 'Theme installed successfully.';
+  } catch (err) {
+    // Error is handled by the store
+  } finally {
+    await refresh();
+    actionState.value = null;
+  }
+}
+
+async function activateTheme(themeSlug: string, themeId: string) {
+  if (!themeSlug) {
     return;
   }
 
-  try {
-    onboardingStore.clearError();
-    currentStep.value = 'install';
+  successMessage.value = null;
+  actionState.value = { id: themeId, type: 'activate' };
 
-    await onboardingStore.installTheme(selectedThemeId.value);
-    await onboardingStore.complete();
-    currentStep.value = 'complete';
+  try {
+    const response = await onboardingStore.activateTheme(themeSlug);
+    successMessage.value = response?.message || 'Theme activated successfully.';
   } catch (err) {
-    // Error is already set in the store
-    currentStep.value = 'select';
+    // Error is handled by the store
+  } finally {
+    await refresh();
+    actionState.value = null;
   }
 }
 
-function skipOnboarding() {
-  router.push('/settings');
+async function installPlugin(slug: string) {
+  successMessage.value = null;
+  pluginActionState.value = { slug, type: 'install' };
+
+  try {
+    const response = await onboardingStore.installPlugin(slug);
+    successMessage.value = response?.message || 'Plugin installed successfully.';
+  } catch (err) {
+    // Error is handled by the store
+  } finally {
+    await refresh();
+    pluginActionState.value = null;
+  }
 }
 
-function goToSettings() {
-  router.push('/settings');
+async function activatePlugin(slug: string) {
+  successMessage.value = null;
+  pluginActionState.value = { slug, type: 'activate' };
+
+  try {
+    const response = await onboardingStore.activatePlugin(slug);
+    successMessage.value = response?.message || 'Plugin activated successfully.';
+  } catch (err) {
+    // Error is handled by the store
+  } finally {
+    await refresh();
+    pluginActionState.value = null;
+  }
 }
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-200px)] bg-gray-50 p-8">
-    <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center h-96">
-      <div class="text-center">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-        <p class="text-gray-600">Loading...</p>
-      </div>
-    </div>
+  <div class="min-h-[calc(100vh-200px)] bg-neutral-50 p-8">
+    <div class="mx-auto flex max-w-6xl flex-col gap-10">
+      <section class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-[0.25em] text-neutral-400">Onboarding</p>
+            <h1 class="mt-3 text-3xl font-semibold text-neutral-900">Get started with Picowind</h1>
+            <p class="mt-2 text-sm text-neutral-600">
+              Get your site looking great quickly by installing a child theme and some recommended plugins.
+            </p>
+          </div>
+        </div>
 
-    <!-- Error State -->
-    <div v-else-if="error" class="max-w-2xl mx-auto">
-      <div class="bg-red-50 border border-red-200 rounded-lg p-6">
-        <h3 class="text-lg font-semibold text-red-800 mb-2">Error</h3>
-        <p class="text-red-600">{{ error }}</p>
-        <button
-          @click="checkOnboardingStatus"
-          class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-        >
-          Retry
-        </button>
-      </div>
-    </div>
+        <div v-if="successMessage" class="mt-6 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800">
+          {{ successMessage }}
+        </div>
 
-    <!-- Welcome & Theme Selection -->
-    <div v-else-if="currentStep === 'select'" class="max-w-5xl mx-auto">
-      <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">Welcome to Picowind!</h1>
-        <p class="text-xl text-gray-600">Let's get you started by selecting a child theme</p>
-      </div>
+        <div v-if="error" class="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {{ error }}
+        </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div
-          v-for="theme in availableThemes"
-          :key="theme.id"
-          @click="onboardingStore.selectTheme(theme.id)"
-          class="bg-white rounded-lg border-2 transition-all cursor-pointer hover:shadow-lg"
-          :class="selectedThemeId === theme.id ? 'border-blue-600 shadow-lg' : 'border-gray-200'"
-        >
-          <div class="p-6">
-            <!-- Thumbnail placeholder -->
-            <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg h-40 mb-4 flex items-center justify-center">
-              <span class="text-4xl font-bold text-white">{{ theme.name }}</span>
-            </div>
+      </section>
 
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ theme.title }}</h3>
-            <p class="text-gray-600 text-sm mb-4">{{ theme.description }}</p>
-
-            <div class="space-y-1">
-              <p class="text-xs font-semibold text-gray-700 mb-2">Features:</p>
-              <ul class="space-y-1">
-                <li v-for="(feature, idx) in theme.features" :key="idx" class="text-xs text-gray-600 flex items-start">
-                  <span class="text-blue-600 mr-2">✓</span>
-                  {{ feature }}
-                </li>
-              </ul>
+      <section class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-neutral-900">Bundled child themes</h2>
+            <p class="text-sm text-neutral-600">
+              Install a bundled child theme or switch to one you already have installed.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="text-xs uppercase tracking-[0.3em] text-neutral-400">{{ bundledThemes.length }} bundles</span>
+            <div v-if="hasActiveChildTheme" class="rounded-md border border-sky-200 px-4 py-2 text-xs font-semibold text-sky-700">
+              Active child theme: {{ activeChildThemeName }}
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="flex justify-center gap-4">
-        <button
-          @click="skipOnboarding"
-          class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded transition-colors"
-        >
-          Skip for Now
-        </button>
-        <button
-          @click="installSelectedTheme"
-          :disabled="!selectedThemeId || installing"
-          class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {{ installing ? 'Installing...' : 'Install Selected Theme' }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Installing State -->
-    <div v-else-if="currentStep === 'install'" class="flex items-center justify-center h-96">
-      <div class="text-center">
-        <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-6"></div>
-        <h2 class="text-2xl font-semibold text-gray-900 mb-2">Installing Theme...</h2>
-        <p class="text-gray-600">Please wait while we download and activate your selected theme</p>
-      </div>
-    </div>
-
-    <!-- Completion State -->
-    <div v-else-if="currentStep === 'complete'" class="max-w-2xl mx-auto text-center">
-      <div class="mb-8">
-        <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-          <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
+        <div v-if="pageLoading" class="mt-8 flex items-center justify-center py-12">
+          <div class="text-center">
+            <div class="inline-block h-12 w-12 animate-spin rounded-md border-b-2 border-neutral-500"></div>
+            <p class="mt-3 text-sm text-neutral-500">Loading bundled themes...</p>
+          </div>
         </div>
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">All Set!</h1>
-        <p class="text-xl text-gray-600 mb-8">
-          {{ hasChildTheme
-            ? 'Your child theme is active and ready to use.'
-            : 'Onboarding completed successfully!'
-          }}
-        </p>
-      </div>
 
-      <div v-if="status?.childTheme" class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-        <h3 class="text-lg font-semibold text-blue-900 mb-2">Active Child Theme</h3>
-        <p class="text-blue-700">{{ status.childTheme.name }}</p>
-        <p class="text-sm text-blue-600">Version {{ status.childTheme.version }}</p>
-      </div>
+        <div v-else-if="bundledThemes.length === 0 && !error" class="mt-8 rounded-md border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
+          No bundled child themes were found in <span class="font-mono text-neutral-700">@child-theme/</span>.
+        </div>
 
-      <button
-        @click="goToSettings"
-        class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
-      >
-        Go to Settings
-      </button>
+        <div v-else-if="bundledThemes.length > 0" class="mt-8 grid gap-6 md:grid-cols-2">
+          <article v-for="theme in bundledThemes" :key="theme.id" class="flex h-full flex-col justify-between rounded-md border border-neutral-200 p-6 shadow-sm transition hover:border-neutral-300" :class="theme.active ? 'bg-neutral-100' : ''">
+            <div>
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="flex">
+                    <h3 class="flex flex-1 text-lg font-semibold text-neutral-900">{{ theme.name }}</h3>
+
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                      <span v-if="theme.active" class="rounded-md border border-green-700 px-2.5 py-1 text-xs font-semibold text-green-700">
+                        Active
+                      </span>
+                      <span v-else-if="theme.installed" class="rounded-md border border-neutral-700 px-2.5 py-1 text-xs font-semibold text-neutral-700">
+                        Installed
+                      </span>
+                      <span v-else class="rounded-md border border-amber-700 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                        Not installed
+                      </span>
+                    </div>
+                  </div>
+                  <p class="mt-2 text-sm text-neutral-600">
+                    {{ theme.description || 'A bundled child theme for Picowind.' }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-4 flex flex-wrap gap-4 text-xs text-neutral-500">
+                <span v-if="theme.version">Version {{ theme.version }}</span>
+                <span v-if="theme.author">By {{ theme.author }}</span>
+              </div>
+            </div>
+
+            <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
+              <button v-if="!theme.installed" @click="installTheme(theme.id)" :disabled="isBusy" class="rounded-md bg-neutral-100 px-4 py-2 text-xs font-semibold capitalize tracking-wider transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-400">
+                {{ isAction(theme.id, 'install') ? 'Installing...' : 'Install' }}
+              </button>
+              <button v-else-if="!theme.active" @click="activateTheme(theme.installedSlug || '', theme.id)" :disabled="!theme.installedSlug || isBusy" class="rounded-md px-4 py-2 text-xs font-semibold capitalize tracking-wider transition text-blue-800 hover:text-blue-100  bg-blue-50 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300">
+                {{ isAction(theme.id, 'activate') ? 'Switching...' : 'Activate' }}
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+        <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-neutral-900">Recommended plugins</h2>
+            <p class="text-sm text-neutral-600">These plugins pair perfectly with Picowind.</p>
+          </div>
+        </div>
+
+        <div v-if="pageLoading" class="mt-8 flex items-center justify-center py-12">
+          <div class="text-center">
+            <div class="inline-block h-12 w-12 animate-spin rounded-md border-b-2 border-neutral-500"></div>
+            <p class="mt-3 text-sm text-neutral-500">Loading recommended plugins...</p>
+          </div>
+        </div>
+
+        <div v-else class="mt-6 grid gap-6 md:grid-cols-3">
+          <article v-for="plugin in recommendedPlugins" :key="plugin.id" class="flex h-full flex-col justify-between rounded-md border border-neutral-200 p-6 shadow-sm transition hover:border-neutral-300" :class="plugin.active ? 'bg-neutral-100' : ''">
+            <div>
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-lg font-semibold text-neutral-900">{{ plugin.name }}</h3>
+                      <a v-if="plugin.url" :href="plugin.url" target="_blank" rel="noopener noreferrer" :aria-label="`Open ${plugin.name} website`" :title="`Open ${plugin.name} website`" class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 text-neutral-500 transition hover:border-neutral-300 hover:text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5h6m0 0v6m0-6L10.5 13.5" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6H6.75A2.25 2.25 0 0 0 4.5 8.25v9A2.25 2.25 0 0 0 6.75 19.5h9A2.25 2.25 0 0 0 18 17.25V13.5" />
+                        </svg>
+                      </a>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                      <span v-if="plugin.active" class="rounded-md border border-green-700 px-2.5 py-1 text-xs font-semibold text-green-700">
+                        Active
+                      </span>
+                      <span v-else-if="plugin.installed" class="rounded-md border border-neutral-700 px-2.5 py-1 text-xs font-semibold text-neutral-700">
+                        Installed
+                      </span>
+                      <span v-else-if="plugin.source === 'wporg'" class="rounded-md border border-amber-700 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                        Not installed
+                      </span>
+                      <span v-else class="rounded-md border border-violet-700 px-2.5 py-1 text-xs font-semibold text-violet-700">
+                        Premium
+                      </span>
+                    </div>
+                  </div>
+                  <p class="mt-2 text-sm text-neutral-600">{{ plugin.description }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+              <p class="text-xs text-neutral-500">
+                <!-- {{ plugin.source === 'wporg' ? 'WordPress.org plugin' : 'Premium plugin' }} -->
+              </p>
+
+              <div class="flex flex-wrap gap-2">
+                <a v-if="plugin.source === 'external' && plugin.slug !== 'livecanvas'" :href="plugin.url" target="_blank" rel="noopener noreferrer" class="rounded-md bg-neutral-100 px-4 py-2 text-xs font-semibold capitalize tracking-wider text-neutral-900 transition hover:bg-neutral-200">
+                  Visit {{ plugin.name }}
+                </a>
+                <button v-else-if="!plugin.installed" @click="installPlugin(plugin.slug)" :disabled="isBusy" class="rounded-md bg-neutral-100 px-4 py-2 text-xs font-semibold capitalize tracking-wider transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-400">
+                  {{ isPluginAction(plugin.slug, 'install') ? 'Installing...' : 'Install' }}
+                </button>
+                <button v-else-if="!plugin.active" @click="activatePlugin(plugin.slug)" :disabled="isBusy" class="rounded-md px-4 py-2 text-xs font-semibold capitalize tracking-wider transition text-blue-800 hover:text-blue-100 bg-blue-50 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300">
+                  {{ isPluginAction(plugin.slug, 'activate') ? 'Activating...' : 'Activate' }}
+                </button>
+                <!-- <button v-else disabled class="rounded-md border border-green-700 px-4 py-2 text-xs font-semibold capitalize tracking-wider text-green-700">
+                  Active
+                </button> -->
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
     </div>
   </div>
 </template>

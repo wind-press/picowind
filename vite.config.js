@@ -113,7 +113,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '~': path.resolve(__dirname), // root directory
-            '@': path.resolve(__dirname, './assets'),
+            '@': path.resolve(__dirname, './resources'),
             // 'source-map-js': 'source-map'
         },
     },

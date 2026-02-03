@@ -196,25 +196,28 @@ final class DiscoveryManager
         }
 
         // Try composer classmap first (faster, if available)
-        $this->scanViaComposerClassmap($discoveryLocation);
+        $processedFiles = $this->scanViaComposerClassmap($discoveryLocation);
 
         // Always do directory scanning as well to catch classes not in composer classmap
         // This ensures child theme classes and manually added files are discovered
         $scanner = new DirectoryScanner($this->discoveries);
-        $scanner->scan($discoveryLocation, $path);
+        $scanner->scan($discoveryLocation, $path, $processedFiles);
     }
 
-    private function scanViaComposerClassmap(DiscoveryLocation $discoveryLocation): bool
+    /**
+     * @return array<string, true>
+     */
+    private function scanViaComposerClassmap(DiscoveryLocation $discoveryLocation): array
     {
         // Only use classmap for vendor or parent theme with composer
         if (! $discoveryLocation->isVendor() && get_stylesheet_directory() !== get_template_directory()) {
             // This is likely a child theme location without composer
-            return false;
+            return [];
         }
 
         $classmap = $this->getComposerClassmap();
         if (empty($classmap)) {
-            return false;
+            return [];
         }
 
         $classes = [];
@@ -225,10 +228,12 @@ final class DiscoveryManager
         }
 
         if (empty($classes)) {
-            return false;
+            return [];
         }
 
-        foreach (array_keys($classes) as $className) {
+        $processedFiles = [];
+
+        foreach ($classes as $className => $filePath) {
             if (! class_exists($className)) {
                 continue;
             }
@@ -239,6 +244,9 @@ final class DiscoveryManager
                 foreach ($this->discoveries as $discovery) {
                     $discovery->discover($discoveryLocation, $classReflector);
                 }
+
+                $resolvedPath = realpath($filePath);
+                $processedFiles[$resolvedPath ?: $filePath] = true;
             } catch (Throwable $e) {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
                     error_log('Picowind Discovery Error for ' . $className . ': ' . $e->getMessage());
@@ -246,7 +254,7 @@ final class DiscoveryManager
             }
         }
 
-        return true;
+        return $processedFiles;
     }
 
     /**

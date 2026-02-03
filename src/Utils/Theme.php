@@ -77,7 +77,7 @@ class Theme
     /**
      * Get cache path for a specific feature
      *
-     * @param ?string $name Feature name (e.g., 'twig', 'blade', 'latte', 'iconify')
+     * @param ?string $name Feature name (e.g., 'twig', 'blade', 'latte')
      * @return string The cache path
      */
     public static function get_cache_path(?string $name = null): string

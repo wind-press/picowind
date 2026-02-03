@@ -30,7 +30,7 @@
                 "./*"
             ],
             "@/*": [
-                "./assets/*"
+                "./resources/*"
             ],
         },
         "types": [
@@ -38,9 +38,9 @@
         ]
     },
     "include": [
-        "assets/**/*.ts",
-        "assets/**/*.tsx",
-        "assets/**/*.vue",
+        "resources/**/*.ts",
+        "resources/**/*.tsx",
+        "resources/**/*.vue",
         "auto-imports.d.ts",
         "components.d.ts"
     ]

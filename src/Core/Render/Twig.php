@@ -19,7 +19,7 @@ use Timber\Timber;
 use Twig\Environment;
 use Twig\TwigFunction;
 
-use function Picowind\iconify;
+use function Picowind\omni_icon;
 use function Picowind\render;
 
 #[Service]
@@ -190,12 +190,12 @@ class Twig
     }
 
     #[Hook('timber/twig', 'filter')]
-    public function add_iconify_function_to_twig(Environment $twigEnvironment): Environment
+    public function add_omni_icon_function_to_twig(Environment $twigEnvironment): Environment
     {
         $twigEnvironment->addFunction(
             new TwigFunction(
-                'ux_icon',
-                iconify(...),
+                'omni_icon',
+                omni_icon(...),
                 ['is_safe' => ['html']],
             ),
         );

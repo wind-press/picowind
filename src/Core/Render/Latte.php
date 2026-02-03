@@ -50,7 +50,7 @@ class Latte
 
         $this->registerTwigFunction();
         $this->registerBladeFunction();
-        $this->registerIconifyFunction();
+        $this->registerOmniIconFunction();
     }
 
     private function registerTwigFunction(): void
@@ -71,11 +71,12 @@ class Latte
         });
     }
 
-    private function registerIconifyFunction(): void
+    private function registerOmniIconFunction(): void
     {
-        // Register function syntax: {ux_icon('mdi:home', ['class' => 'icon'])}
-        $this->latte->addFunction('ux_icon', function (string $iconName, array $attributes = []) {
-            $output = \Picowind\iconify($iconName, $attributes);
+        // Register function syntax: {omni_icon('mdi:home', ['class' => 'icon'])}
+        // Uses Omni Icon plugin via OmniIcon wrapper
+        $this->latte->addFunction('omni_icon', function (string $iconName, array $attributes = []) {
+            $output = \Picowind\omni_icon($iconName, $attributes);
             return new Html($output);
         });
     }

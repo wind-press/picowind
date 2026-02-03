@@ -19,8 +19,17 @@ declare(strict_types=1);
 namespace Picowind;
 
 $context = context();
+
+$context['included_templates'] = array_merge(
+    apply_filters('f!picowind/timber:included_templates', []),
+    [
+        __FILE__,
+    ],
+);
+
 $templates = ['index.twig'];
 if (is_home()) {
     array_unshift($templates, 'front-page.twig', 'home.twig');
 }
+
 render($templates, $context);

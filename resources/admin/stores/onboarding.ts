@@ -2,16 +2,30 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useApi } from '../library/api';
 
-export interface Theme {
+export interface BundledTheme {
   id: string;
   name: string;
-  title: string;
   description: string;
   version: string;
   author: string;
-  thumbnail: string;
-  downloadUrl: string;
-  features: string[];
+  themeUri?: string;
+  template?: string;
+  textDomain?: string;
+  tags: string[];
+  installed: boolean;
+  active: boolean;
+  installedSlug: string | null;
+}
+
+export interface RecommendedPlugin {
+  id: string;
+  name: string;
+  slug: string;
+  source: 'wporg' | 'external';
+  url: string;
+  description: string;
+  installed: boolean;
+  active: boolean;
 }
 
 export interface OnboardingStatus {
@@ -28,22 +42,18 @@ export interface OnboardingStatus {
 export const useOnboardingStore = defineStore('onboarding', () => {
   const api = useApi();
 
-  // State
   const loading = ref(false);
   const installing = ref(false);
+  const activating = ref(false);
   const status = ref<OnboardingStatus | null>(null);
-  const availableThemes = ref<Theme[]>([]);
-  const selectedThemeId = ref<string | null>(null);
+  const bundledThemes = ref<BundledTheme[]>([]);
+  const recommendedPlugins = ref<RecommendedPlugin[]>([]);
   const error = ref<string | null>(null);
 
-  // Getters
   const isCompleted = computed(() => status.value?.completed || false);
   const hasChildTheme = computed(() => status.value?.hasChildTheme || false);
-  const selectedTheme = computed(() =>
-    availableThemes.value.find(theme => theme.id === selectedThemeId.value) || null
-  );
+  const activeTheme = computed(() => bundledThemes.value.find(theme => theme.active) || null);
 
-  // Actions
   async function fetchStatus() {
     try {
       loading.value = true;
@@ -67,11 +77,28 @@ export const useOnboardingStore = defineStore('onboarding', () => {
       error.value = null;
 
       const response = await api.get('/onboarding/themes');
-      availableThemes.value = response.data.data;
+      bundledThemes.value = Array.isArray(response.data.data) ? response.data.data : [];
 
-      return availableThemes.value;
+      return bundledThemes.value;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch themes';
+      error.value = err.response?.data?.message || 'Failed to fetch bundled themes';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchPlugins() {
+    try {
+      loading.value = true;
+      error.value = null;
+
+      const response = await api.get('/onboarding/plugins');
+      recommendedPlugins.value = Array.isArray(response.data.data) ? response.data.data : [];
+
+      return recommendedPlugins.value;
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to fetch recommended plugins';
       throw err;
     } finally {
       loading.value = false;
@@ -87,18 +114,66 @@ export const useOnboardingStore = defineStore('onboarding', () => {
         themeId,
       });
 
-      if (response.data.success) {
-        // Update status after installation
-        await fetchStatus();
-        return response.data.data;
-      } else {
-        throw new Error(response.data.message || 'Installation failed');
-      }
+      return response.data;
     } catch (err: any) {
       error.value = err.response?.data?.message || err.message || 'Failed to install theme';
       throw err;
     } finally {
       installing.value = false;
+    }
+  }
+
+  async function activateTheme(themeSlug: string) {
+    try {
+      activating.value = true;
+      error.value = null;
+
+      const response = await api.post('/onboarding/activate-theme', {
+        themeSlug,
+      });
+
+      return response.data;
+    } catch (err: any) {
+      error.value = err.response?.data?.message || err.message || 'Failed to activate theme';
+      throw err;
+    } finally {
+      activating.value = false;
+    }
+  }
+
+  async function installPlugin(slug: string) {
+    try {
+      installing.value = true;
+      error.value = null;
+
+      const response = await api.post('/onboarding/install-plugin', {
+        slug,
+      });
+
+      return response.data;
+    } catch (err: any) {
+      error.value = err.response?.data?.message || err.message || 'Failed to install plugin';
+      throw err;
+    } finally {
+      installing.value = false;
+    }
+  }
+
+  async function activatePlugin(slug: string) {
+    try {
+      activating.value = true;
+      error.value = null;
+
+      const response = await api.post('/onboarding/activate-plugin', {
+        slug,
+      });
+
+      return response.data;
+    } catch (err: any) {
+      error.value = err.response?.data?.message || err.message || 'Failed to activate plugin';
+      throw err;
+    } finally {
+      activating.value = false;
     }
   }
 
@@ -109,7 +184,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
       const response = await api.post('/onboarding/complete');
 
       if (response.data.success) {
-        // Update local status
         if (status.value) {
           status.value.completed = true;
         }
@@ -129,10 +203,8 @@ export const useOnboardingStore = defineStore('onboarding', () => {
       const response = await api.post('/onboarding/reset');
 
       if (response.data.success) {
-        // Clear local state
         status.value = null;
-        selectedThemeId.value = null;
-        await fetchStatus();
+        await Promise.all([fetchStatus(), fetchThemes(), fetchPlugins()]);
       }
 
       return response.data;
@@ -142,35 +214,30 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     }
   }
 
-  function selectTheme(themeId: string) {
-    selectedThemeId.value = themeId;
-  }
-
   function clearError() {
     error.value = null;
   }
 
   return {
-    // State
     loading,
     installing,
+    activating,
     status,
-    availableThemes,
-    selectedThemeId,
+    bundledThemes,
+    recommendedPlugins,
     error,
-
-    // Getters
     isCompleted,
     hasChildTheme,
-    selectedTheme,
-
-    // Actions
+    activeTheme,
     fetchStatus,
     fetchThemes,
+    fetchPlugins,
     installTheme,
+    activateTheme,
+    installPlugin,
+    activatePlugin,
     complete,
     reset,
-    selectTheme,
     clearError,
   };
 });

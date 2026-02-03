@@ -17,8 +17,10 @@ final class DirectoryScanner
 
     /**
      * Recursively scan a directory and apply discoveries to all files
+     *
+     * @param array<string, true> $skipFiles
      */
-    public function scan(DiscoveryLocation $location, string $path): void
+    public function scan(DiscoveryLocation $location, string $path, array $skipFiles = []): void
     {
         $input = realpath($path);
 
@@ -46,9 +48,13 @@ final class DirectoryScanner
                 }
 
                 // Scan all files and folders within this directory
-                $this->scan($location, "{$input}/{$subPath}");
+                $this->scan($location, "{$input}/{$subPath}", $skipFiles);
             }
 
+            return;
+        }
+
+        if ([] !== $skipFiles && isset($skipFiles[$input])) {
             return;
         }
 

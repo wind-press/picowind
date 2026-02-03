@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Picowind;
 
 use Picowind\Core\Template;
+use Picowind\Supports\OmniIcon;
 use Timber\Timber;
 
 /**
@@ -22,7 +23,7 @@ use Timber\Timber;
  * @param ?bool $print Whether to print the rendered template. Default is true.
  * @return void|string The rendered template output if $print is false, otherwise void.
  */
-function render($paths, array $context = [], ?string $engine = null, ?bool $print = true)
+function render($paths, array $context = [], ?string $engine = null, ?bool $print = true, ?bool $silent = false)
 {
     $theme = Theme::get_instance();
     $container = $theme->container();
@@ -32,15 +33,18 @@ function render($paths, array $context = [], ?string $engine = null, ?bool $prin
     try {
         return $template->render_template($paths, $context, $engine, $print);
     } catch (\Throwable $e) {
-        error_log(sprintf(
-            "[Picowind Render Error]\nPaths: %s\nEngine: %s\nMessage: %s\nFile: %s:%d\nTrace:\n%s",
-            is_array($paths) ? implode(', ', $paths) : $paths,
-            $engine ?? 'auto-detect',
-            $e->getMessage(),
-            $e->getFile(),
-            $e->getLine(),
-            $e->getTraceAsString(),
-        ));
+        // TODO: instead of $silent flag, use logging service with levels.
+        if (! $silent) {
+            error_log(sprintf(
+                "[Picowind Render Error]\nPaths: %s\nEngine: %s\nMessage: %s\nFile: %s:%d\nTrace:\n%s",
+                is_array($paths) ? implode(', ', $paths) : $paths,
+                $engine ?? 'auto-detect',
+                $e->getMessage(),
+                $e->getFile(),
+                $e->getLine(),
+                $e->getTraceAsString(),
+            ));
+        }
 
         // Engine and paths info.
         $failMessage = sprintf(
@@ -49,11 +53,10 @@ function render($paths, array $context = [], ?string $engine = null, ?bool $prin
             is_array($paths) ? implode(', ', $paths) : $paths,
         );
 
-        if ($print) {
+        if ($print && ! $silent) {
             echo $failMessage;
-            return null;
         }
-        return $failMessage;
+        return null;
     }
 }
 
@@ -100,27 +103,32 @@ function render_string(string $template_string, array $context = [], string $eng
 }
 
 /**
- * Render an icon from Iconify.
+ * Render an icon using Omni Icon plugin.
  *
- * @param string $iconName Icon name in format "prefix:icon-name" (e.g., "mdi:home", "bi:github")
+ * This function wraps the Omni Icon plugin's IconService to render icons.
+ * Requires the Omni Icon plugin to be installed and activated.
+ *
+ * @param string $iconName Icon name in format "prefix:icon-name" (e.g., "mdi:home", "local:my-logo", "omni:windpress")
  * @param array  $attributes Optional HTML attributes to add to the SVG element
  * @return string SVG HTML string or empty string if icon not found
  *
  * @example
  * // Basic usage
- * echo Picowind\iconify('mdi:home');
+ * echo Picowind\omni_icon('mdi:home');
+ * echo Picowind\omni_icon('local:my-logo');
+ * echo Picowind\omni_icon('omni:windpress');
  *
  * // With attributes
- * echo Picowind\iconify('mdi:home', ['class' => 'icon-large', 'width' => '32']);
+ * echo Picowind\omni_icon('mdi:home', ['class' => 'icon-large', 'width' => '32']);
  */
-function iconify(string $iconName, array $attributes = []): string
+function omni_icon(string $iconName, array $attributes = []): string
 {
     $theme = Theme::get_instance();
     $container = $theme->container();
-    /** @var \Picowind\Supports\Iconify */
-    $iconify = $container->get(\Picowind\Supports\Iconify::class);
+    /** @var \Picowind\Supports\OmniIcon */
+    $omniIcon = $container->get(OmniIcon::class);
 
-    return $iconify->get_icon($iconName, $attributes);
+    return $omniIcon->get_icon($iconName, $attributes) ?? '';
 }
 
 /**

@@ -102,7 +102,7 @@ final class ConfigController
     }
 
     /**
-     * Update config value by path (single update)
+     * Update config value by path (single update) or merge object (bulk update)
      */
     #[Route(
         path: '',
@@ -110,13 +110,13 @@ final class ConfigController
         permission_callback: 'manage_options',
         args: [
             'path' => [
-                'required' => true,
+                'required' => false,
                 'type' => 'string',
                 'description' => 'Property path to update (e.g., "settings.theme.color")',
                 'sanitize_callback' => 'sanitize_text_field',
             ],
             'value' => [
-                'required' => true,
+                'required' => false,
                 'description' => 'Value to set',
             ],
         ],
@@ -125,16 +125,47 @@ final class ConfigController
     {
         $path = $request->get_param('path');
         $value = $request->get_param('value');
+        $body = $request->get_json_params();
 
         try {
-            Config::set($path, $value);
+            // If path is provided, do single update
+            if ($path !== null) {
+                Config::set($path, $value);
+
+                return new WP_REST_Response([
+                    'success' => true,
+                    'message' => 'Config updated successfully',
+                    'path' => $path,
+                    'value' => $value,
+                ], 200);
+            }
+
+            // Otherwise, merge the entire body object with existing config
+            if (!empty($body)) {
+                $currentOptions = json_decode(
+                    get_option('picowind_options', '{}'),
+                    true,
+                    512,
+                    JSON_THROW_ON_ERROR,
+                );
+
+                // Recursively merge arrays
+                $mergedOptions = array_replace_recursive($currentOptions, $body);
+                
+                $jsonData = wp_json_encode($mergedOptions, JSON_THROW_ON_ERROR);
+                update_option('picowind_options', $jsonData);
+
+                return new WP_REST_Response([
+                    'success' => true,
+                    'message' => 'Config updated successfully',
+                    'data' => $mergedOptions,
+                ], 200);
+            }
 
             return new WP_REST_Response([
-                'success' => true,
-                'message' => 'Config updated successfully',
-                'path' => $path,
-                'value' => $value,
-            ], 200);
+                'success' => false,
+                'message' => 'Either path+value or request body must be provided',
+            ], 400);
         } catch (Exception $e) {
             return new WP_REST_Response([
                 'success' => false,
