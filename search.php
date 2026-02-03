@@ -15,7 +15,7 @@ namespace Picowind;
 $context = context();
 $context['title'] = sprintf(
     /* translators: %s: search query */
-    __('Search Results for: %s', 'picowind-tw'),
+    __('Search Results for: %s', 'picowind'),
     get_search_query(),
 );
 $context['search_query'] = get_search_query();

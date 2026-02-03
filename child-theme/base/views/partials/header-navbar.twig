@@ -12,7 +12,7 @@
 {# The Navbar Area #}
 <div id="wrapper-navbar" itemscope itemtype="http://schema.org/WebSite">
 	<a class="skip-link sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:p-4 focus:bg-base-100" href="#theme-main">
-		{{ __('Skip to content', 'picowind-tw') }}
+		{{ __('Skip to content', 'picowind-base') }}
 	</a>
 
 	<div class="drawer drawer-end">
@@ -70,7 +70,7 @@
 						{# Search form #}
 						{% if theme.mods.enable_search_form %}
 							<form action="{{ site.url }}" method="get" id="header-search-form" class="hidden md:block">
-								<input type="text" placeholder="{{ __('Search', 'picowind-tw') }}" aria-label="{{ __('Search', 'picowind-tw') }}" name="s" value="{{ function('get_search_query') }}" class="input input-bordered input-sm w-full max-w-xs"/>
+								<input type="text" placeholder="{{ __('Search', 'picowind-base') }}" aria-label="{{ __('Search', 'picowind-base') }}" name="s" value="{{ function('get_search_query') }}" class="input input-bordered input-sm w-full max-w-xs"/>
 							</form>
 						{% endif %}
 
@@ -110,7 +110,7 @@
 				{# Mobile search #}
 				{% if theme.mods.enable_search_form %}
 					<form action="{{ site.url }}" method="get" class="mt-4 px-2">
-						<input type="text" placeholder="{{ __('Search', 'picowind-tw') }}" aria-label="{{ __('Search', 'picowind-tw') }}" name="s" value="{{ function('get_search_query') }}" class="input input-bordered w-full"/>
+						<input type="text" placeholder="{{ __('Search', 'picowind-base') }}" aria-label="{{ __('Search', 'picowind-base') }}" name="s" value="{{ function('get_search_query') }}" class="input input-bordered w-full"/>
 					</form>
 				{% endif %}
 
@@ -123,7 +123,7 @@
 								{{ omni_icon("lucide:sun", {class: "swap-off fill-current w-5 h-5"}) }}
 								{{ omni_icon("lucide:moon", {class: "swap-on fill-current w-5 h-5"}) }}
 							</div>
-							<span id="theme-label-mobile">{{ __('Light Mode', 'picowind-tw') }}</span>
+							<span id="theme-label-mobile">{{ __('Light Mode', 'picowind-base') }}</span>
 						</label>
 					</div>
 				{% endif %}
@@ -163,7 +163,7 @@
                 if (currentTheme === 'dark') {
                     if (themeToggle) themeToggle.checked = true;
                     if (themeToggleMobile) themeToggleMobile.checked = true;
-                    if (themeLabelMobile) themeLabelMobile.textContent = '{{ __('Dark Mode', 'picowind-tw') }}';
+                    if (themeLabelMobile) themeLabelMobile.textContent = '{{ __('Dark Mode', 'picowind-base') }}';
                 }
             }
 
@@ -220,7 +220,7 @@
                 if (themeToggle) themeToggle.checked = isDark;
                 if (themeToggleMobile) themeToggleMobile.checked = isDark;
                 if (themeLabelMobile) {
-                    themeLabelMobile.textContent = isDark ? '{{ __('Dark Mode', 'picowind-tw') }}' : '{{ __('Light Mode', 'picowind-tw') }}';
+                    themeLabelMobile.textContent = isDark ? '{{ __('Dark Mode', 'picowind-base') }}' : '{{ __('Light Mode', 'picowind-base') }}';
                 }
             }
 

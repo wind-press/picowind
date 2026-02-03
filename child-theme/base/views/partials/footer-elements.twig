@@ -18,7 +18,7 @@
                     {{ theme.mods.footer_text|raw }}
                 {% else %}
                     {% if function('current_user_can', 'administrator') %}
-                        {{ __('You can edit this footer text from the Picowind settings page.', 'picowind-tw') }}
+                        {{ __('You can edit this footer text from the Picowind settings page.', 'picowind-base') }}
                     {% endif %}
                 {% endif %}
             </div>

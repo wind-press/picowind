@@ -14,6 +14,9 @@ html:has(.folded) {
             background-color: var(--ui-bg);
             color: var(--ui-text);
             position: fixed !important;
+            top: 32px;
+            height: calc(100vh - 32px);
+            overflow: auto;
 
             width: calc(100% - var(--wp-admin--sidebar-width));
 
@@ -43,5 +46,14 @@ html:has(.folded) {
 
     #adminmenumain #adminmenu li img {
         display: inline;
+    }
+
+    @media screen and (max-width: 782px) {
+        #wpcontent {
+            #wpbody {
+                top: 46px;
+                height: calc(100vh - 46px);
+            }
+        }
     }
 }

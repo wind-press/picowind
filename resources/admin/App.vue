@@ -5,10 +5,7 @@ const router = useRouter();
 const route = useRoute();
 
 const tabs = [
-  { id: 'onboarding', label: 'onboarding', path: '/onboarding' },
-  { id: 'settings', label: 'Settings', path: '/settings' },
-  { id: 'help', label: 'Help', path: '/help' },
-  { id: 'whats-new', label: "What's New", path: '/whats-new' },
+  { id: 'onboarding', label: 'Onboarding', path: '/onboarding' },
 ];
 
 const isActiveTab = (path) => {
@@ -34,13 +31,7 @@ const navigateTo = (path) => {
 
           <!-- Side -->
           <div class="flex items-center gap-3">
-            <!-- <span class="text-sm text-gray-700 font-medium">Version 1.0.0</span> -->
-            <!-- <button class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded shadow-md transition-colors">
-              UPGRADE
-            </button> -->
-
             <span class="text-sm text-gray-700 font-medium">Version {{ window.picowind?._version }}</span>
-
 
           </div>
         </div>
