@@ -10,12 +10,36 @@ declare(strict_types=1);
 
 namespace Picowind\Supports;
 
+use Picowind\Core\Discovery\Attributes\Hook;
 use Picowind\Core\Discovery\Attributes\Service;
 
 #[Service]
 class LiveCanvas
 {
     public function __construct() {}
+
+    #[Hook('admin_menu', 'action', priority: 20)]
+    public function add_picowind_submenu(): void
+    {
+        if (! $this->is_livecanvas_active()) {
+            return;
+        }
+
+        $parent_slug = $this->get_livecanvas_menu_slug();
+
+        if (! $parent_slug) {
+            return;
+        }
+
+        add_submenu_page(
+            $parent_slug,
+            __('Picowind', 'picowind'),
+            __('Picowind', 'picowind'),
+            'manage_options',
+            'themes.php?page=picowind',
+            null,
+        );
+    }
 
     /**
      * Declare the theme as LiveCanvas friendly
@@ -37,5 +61,69 @@ class LiveCanvas
         ];
 
         return $data[$key];
+    }
+
+    private function is_livecanvas_active(): bool
+    {
+        $plugin_file = $this->get_plugin_file_by_slug('livecanvas');
+
+        if (! $plugin_file) {
+            return false;
+        }
+
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+        return is_plugin_active($plugin_file);
+    }
+
+    private function get_livecanvas_menu_slug(): ?string
+    {
+        global $menu;
+
+        if (! is_array($menu)) {
+            return null;
+        }
+
+        foreach ($menu as $item) {
+            if (! is_array($item) || ! isset($item[0], $item[2])) {
+                continue;
+            }
+
+            $label = wp_strip_all_tags((string) $item[0]);
+            $slug = (string) $item[2];
+
+            if ($label === '') {
+                continue;
+            }
+
+            if (stripos($label, 'livecanvas') !== false || stripos($slug, 'livecanvas') !== false) {
+                return $slug;
+            }
+        }
+
+        return null;
+    }
+
+    private function get_plugin_file_by_slug(string $slug): ?string
+    {
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+        $plugins = get_plugins();
+
+        foreach ($plugins as $file => $data) {
+            $directory = dirname($file);
+
+            if ($directory === $slug || basename($file, '.php') === $slug) {
+                return $file;
+            }
+        }
+
+        foreach ($plugins as $file => $data) {
+            if (! empty($data['TextDomain']) && $data['TextDomain'] === $slug) {
+                return $file;
+            }
+        }
+
+        return null;
     }
 }

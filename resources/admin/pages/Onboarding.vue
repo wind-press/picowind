@@ -109,23 +109,20 @@ async function activatePlugin(slug: string) {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-200px)] bg-slate-50 p-8">
+  <div class="min-h-[calc(100vh-200px)] bg-neutral-50 p-8">
     <div class="mx-auto flex max-w-6xl flex-col gap-10">
-      <section class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <section class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Onboarding</p>
-            <h1 class="mt-3 text-3xl font-semibold text-slate-900">Get started with Picowind</h1>
-            <p class="mt-2 text-sm text-slate-600">
-              Choose a bundled child theme and add the plugins you need to complete your setup.
+            <p class="text-xs uppercase tracking-[0.25em] text-neutral-400">Onboarding</p>
+            <h1 class="mt-3 text-3xl font-semibold text-neutral-900">Get started with Picowind</h1>
+            <p class="mt-2 text-sm text-neutral-600">
+              Get your site looking great quickly by installing a child theme and some recommended plugins.
             </p>
           </div>
         </div>
 
-        <div
-          v-if="successMessage"
-          class="mt-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
-        >
+        <div v-if="successMessage" class="mt-6 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800">
           {{ successMessage }}
         </div>
 
@@ -135,20 +132,17 @@ async function activatePlugin(slug: string) {
 
       </section>
 
-      <section class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <section class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 class="text-xl font-semibold text-slate-900">Bundled child themes</h2>
-            <p class="text-sm text-slate-600">
+            <h2 class="text-xl font-semibold text-neutral-900">Bundled child themes</h2>
+            <p class="text-sm text-neutral-600">
               Install a bundled child theme or switch to one you already have installed.
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <span class="text-xs uppercase tracking-[0.3em] text-slate-400">{{ bundledThemes.length }} bundles</span>
-            <div
-              v-if="hasActiveChildTheme"
-              class="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-xs font-semibold text-green-700"
-            >
+            <span class="text-xs uppercase tracking-[0.3em] text-neutral-400">{{ bundledThemes.length }} bundles</span>
+            <div v-if="hasActiveChildTheme" class="rounded-md border border-sky-200 px-4 py-2 text-xs font-semibold text-sky-700">
               Active child theme: {{ activeChildThemeName }}
             </div>
           </div>
@@ -156,79 +150,52 @@ async function activatePlugin(slug: string) {
 
         <div v-if="pageLoading" class="mt-8 flex items-center justify-center py-12">
           <div class="text-center">
-            <div class="inline-block h-12 w-12 animate-spin rounded-full border-b-2 border-slate-500"></div>
-            <p class="mt-3 text-sm text-slate-500">Loading bundled themes...</p>
+            <div class="inline-block h-12 w-12 animate-spin rounded-md border-b-2 border-neutral-500"></div>
+            <p class="mt-3 text-sm text-neutral-500">Loading bundled themes...</p>
           </div>
         </div>
 
-        <div
-          v-else-if="bundledThemes.length === 0 && !error"
-          class="mt-8 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-600"
-        >
-          No bundled child themes were found in <span class="font-mono text-slate-700">@child-theme/</span>.
+        <div v-else-if="bundledThemes.length === 0 && !error" class="mt-8 rounded-md border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
+          No bundled child themes were found in <span class="font-mono text-neutral-700">@child-theme/</span>.
         </div>
 
         <div v-else-if="bundledThemes.length > 0" class="mt-8 grid gap-6 md:grid-cols-2">
-          <article
-            v-for="theme in bundledThemes"
-            :key="theme.id"
-            class="flex h-full flex-col justify-between rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300"
-          >
+          <article v-for="theme in bundledThemes" :key="theme.id" class="flex h-full flex-col justify-between rounded-md border border-neutral-200 p-6 shadow-sm transition hover:border-neutral-300" :class="theme.active ? 'bg-neutral-100' : ''">
             <div>
               <div class="flex items-start justify-between gap-4">
                 <div>
-                  <h3 class="text-lg font-semibold text-slate-900">{{ theme.name }}</h3>
-                  <p class="mt-2 text-sm text-slate-600">
+                  <div class="flex">
+                    <h3 class="flex flex-1 text-lg font-semibold text-neutral-900">{{ theme.name }}</h3>
+
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                      <span v-if="theme.active" class="rounded-md border border-green-700 px-2.5 py-1 text-xs font-semibold text-green-700">
+                        Active
+                      </span>
+                      <span v-else-if="theme.installed" class="rounded-md border border-neutral-700 px-2.5 py-1 text-xs font-semibold text-neutral-700">
+                        Installed
+                      </span>
+                      <span v-else class="rounded-md border border-amber-700 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                        Not installed
+                      </span>
+                    </div>
+                  </div>
+                  <p class="mt-2 text-sm text-neutral-600">
                     {{ theme.description || 'A bundled child theme for Picowind.' }}
                   </p>
                 </div>
-                <div class="flex flex-wrap items-center justify-end gap-2">
-                  <span
-                    v-if="theme.active"
-                    class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700"
-                  >
-                    Active
-                  </span>
-                  <span
-                    v-else-if="theme.installed"
-                    class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
-                  >
-                    Installed
-                  </span>
-                  <span v-else class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                    Not installed
-                  </span>
-                </div>
               </div>
 
-              <div class="mt-4 flex flex-wrap gap-4 text-xs text-slate-500">
+              <div class="mt-4 flex flex-wrap gap-4 text-xs text-neutral-500">
                 <span v-if="theme.version">Version {{ theme.version }}</span>
                 <span v-if="theme.author">By {{ theme.author }}</span>
               </div>
             </div>
 
             <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
-              <button
-                v-if="!theme.installed"
-                @click="installTheme(theme.id)"
-                :disabled="isBusy"
-                class="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-              >
+              <button v-if="!theme.installed" @click="installTheme(theme.id)" :disabled="isBusy" class="rounded-md bg-neutral-100 px-4 py-2 text-xs font-semibold capitalize tracking-wider transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-400">
                 {{ isAction(theme.id, 'install') ? 'Installing...' : 'Install' }}
               </button>
-              <button
-                v-else-if="theme.active"
-                disabled
-                class="rounded-lg bg-green-100 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-green-700"
-              >
-                Active
-              </button>
-              <button
-                v-else
-                @click="activateTheme(theme.installedSlug || '', theme.id)"
-                :disabled="!theme.installedSlug || isBusy"
-                class="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300"
-              >
+              <button v-else-if="!theme.active" @click="activateTheme(theme.installedSlug || '', theme.id)" :disabled="!theme.installedSlug || isBusy" class="rounded-md px-4 py-2 text-xs font-semibold capitalize tracking-wider transition text-blue-800 hover:text-blue-100  bg-blue-50 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300">
                 {{ isAction(theme.id, 'activate') ? 'Switching...' : 'Activate' }}
               </button>
             </div>
@@ -236,97 +203,74 @@ async function activatePlugin(slug: string) {
         </div>
       </section>
 
-      <section class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <section class="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
         <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 class="text-xl font-semibold text-slate-900">Recommended plugins</h2>
-            <p class="text-sm text-slate-600">These plugins pair perfectly with Picowind.</p>
+            <h2 class="text-xl font-semibold text-neutral-900">Recommended plugins</h2>
+            <p class="text-sm text-neutral-600">These plugins pair perfectly with Picowind.</p>
           </div>
         </div>
 
         <div v-if="pageLoading" class="mt-8 flex items-center justify-center py-12">
           <div class="text-center">
-            <div class="inline-block h-12 w-12 animate-spin rounded-full border-b-2 border-slate-500"></div>
-            <p class="mt-3 text-sm text-slate-500">Loading recommended plugins...</p>
+            <div class="inline-block h-12 w-12 animate-spin rounded-md border-b-2 border-neutral-500"></div>
+            <p class="mt-3 text-sm text-neutral-500">Loading recommended plugins...</p>
           </div>
         </div>
 
-        <div v-else class="mt-6 grid gap-5 md:grid-cols-3">
-          <article
-            v-for="plugin in recommendedPlugins"
-            :key="plugin.id"
-            class="flex h-full flex-col justify-between rounded-xl border border-slate-200 bg-slate-50 p-5"
-          >
+        <div v-else class="mt-6 grid gap-6 md:grid-cols-3">
+          <article v-for="plugin in recommendedPlugins" :key="plugin.id" class="flex h-full flex-col justify-between rounded-md border border-neutral-200 p-6 shadow-sm transition hover:border-neutral-300" :class="plugin.active ? 'bg-neutral-100' : ''">
             <div>
-              <div class="flex items-start justify-between gap-3">
+              <div class="flex items-start justify-between gap-4">
                 <div>
-                  <h3 class="text-lg font-semibold text-slate-900">{{ plugin.name }}</h3>
-                  <p class="mt-2 text-sm text-slate-600">{{ plugin.description }}</p>
-                </div>
-                <div class="flex flex-wrap items-center justify-end gap-2">
-                  <span
-                    v-if="plugin.active"
-                    class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700"
-                  >
-                    Active
-                  </span>
-                  <span
-                    v-else-if="plugin.installed"
-                    class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
-                  >
-                    Installed
-                  </span>
-                  <span
-                    v-else-if="plugin.source === 'wporg'"
-                    class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700"
-                  >
-                    Not installed
-                  </span>
-                  <span v-else class="rounded-full bg-violet-100 px-2.5 py-1 text-xs font-semibold text-violet-700">
-                    Premium
-                  </span>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-lg font-semibold text-neutral-900">{{ plugin.name }}</h3>
+                      <a v-if="plugin.url" :href="plugin.url" target="_blank" rel="noopener noreferrer" :aria-label="`Open ${plugin.name} website`" :title="`Open ${plugin.name} website`" class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 text-neutral-500 transition hover:border-neutral-300 hover:text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-4 w-4" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5h6m0 0v6m0-6L10.5 13.5" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6H6.75A2.25 2.25 0 0 0 4.5 8.25v9A2.25 2.25 0 0 0 6.75 19.5h9A2.25 2.25 0 0 0 18 17.25V13.5" />
+                        </svg>
+                      </a>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                      <span v-if="plugin.active" class="rounded-md border border-green-700 px-2.5 py-1 text-xs font-semibold text-green-700">
+                        Active
+                      </span>
+                      <span v-else-if="plugin.installed" class="rounded-md border border-neutral-700 px-2.5 py-1 text-xs font-semibold text-neutral-700">
+                        Installed
+                      </span>
+                      <span v-else-if="plugin.source === 'wporg'" class="rounded-md border border-amber-700 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                        Not installed
+                      </span>
+                      <span v-else class="rounded-md border border-violet-700 px-2.5 py-1 text-xs font-semibold text-violet-700">
+                        Premium
+                      </span>
+                    </div>
+                  </div>
+                  <p class="mt-2 text-sm text-neutral-600">{{ plugin.description }}</p>
                 </div>
               </div>
             </div>
 
             <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-              <p class="text-xs text-slate-500">
-                {{ plugin.source === 'wporg' ? 'WordPress.org plugin' : 'Premium plugin' }}
+              <p class="text-xs text-neutral-500">
+                <!-- {{ plugin.source === 'wporg' ? 'WordPress.org plugin' : 'Premium plugin' }} -->
               </p>
 
               <div class="flex flex-wrap gap-2">
-                <a
-                  v-if="plugin.source === 'external'"
-                  :href="plugin.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-slate-800"
-                >
+                <a v-if="plugin.source === 'external' && plugin.slug !== 'livecanvas'" :href="plugin.url" target="_blank" rel="noopener noreferrer" class="rounded-md bg-neutral-100 px-4 py-2 text-xs font-semibold capitalize tracking-wider text-neutral-900 transition hover:bg-neutral-200">
                   Visit {{ plugin.name }}
                 </a>
-                <button
-                  v-else-if="!plugin.installed"
-                  @click="installPlugin(plugin.slug)"
-                  :disabled="isBusy"
-                  class="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-                >
+                <button v-else-if="!plugin.installed" @click="installPlugin(plugin.slug)" :disabled="isBusy" class="rounded-md bg-neutral-100 px-4 py-2 text-xs font-semibold capitalize tracking-wider transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-400">
                   {{ isPluginAction(plugin.slug, 'install') ? 'Installing...' : 'Install' }}
                 </button>
-                <button
-                  v-else-if="!plugin.active"
-                  @click="activatePlugin(plugin.slug)"
-                  :disabled="isBusy"
-                  class="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300"
-                >
+                <button v-else-if="!plugin.active" @click="activatePlugin(plugin.slug)" :disabled="isBusy" class="rounded-md px-4 py-2 text-xs font-semibold capitalize tracking-wider transition text-blue-800 hover:text-blue-100 bg-blue-50 hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300">
                   {{ isPluginAction(plugin.slug, 'activate') ? 'Activating...' : 'Activate' }}
                 </button>
-                <button
-                  v-else
-                  disabled
-                  class="rounded-lg bg-green-100 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-green-700"
-                >
+                <!-- <button v-else disabled class="rounded-md border border-green-700 px-4 py-2 text-xs font-semibold capitalize tracking-wider text-green-700">
                   Active
-                </button>
+                </button> -->
               </div>
             </div>
           </article>

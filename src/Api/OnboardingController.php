@@ -240,8 +240,16 @@ final class OnboardingController
 
         try {
             $catalog = $this->getRecommendedPluginsCatalog();
+            $plugin = $catalog[$slug] ?? null;
 
-            if (! isset($catalog[$slug]) || ($catalog[$slug]['source'] ?? '') !== 'wporg') {
+            if (! $plugin) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => 'Plugin is not available for installation',
+                ], 404);
+            }
+
+            if (! $this->canInstallRecommendedPlugin($plugin)) {
                 return new WP_REST_Response([
                     'success' => false,
                     'message' => 'Plugin is not available for installation',
@@ -345,8 +353,16 @@ final class OnboardingController
 
         try {
             $catalog = $this->getRecommendedPluginsCatalog();
+            $plugin = $catalog[$slug] ?? null;
 
-            if (! isset($catalog[$slug]) || ($catalog[$slug]['source'] ?? '') !== 'wporg') {
+            if (! $plugin) {
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => 'Plugin is not available for activation',
+                ], 404);
+            }
+
+            if (! $this->canInstallRecommendedPlugin($plugin)) {
                 return new WP_REST_Response([
                     'success' => false,
                     'message' => 'Plugin is not available for activation',
@@ -608,14 +624,6 @@ final class OnboardingController
         $plugins = [];
 
         foreach ($catalog as $plugin) {
-            if (($plugin['source'] ?? '') !== 'wporg') {
-                $plugins[] = array_merge($plugin, [
-                    'installed' => false,
-                    'active' => false,
-                ]);
-                continue;
-            }
-
             $pluginFile = $this->getPluginFileBySlug($plugin['slug']);
             $plugins[] = array_merge($plugin, [
                 'installed' => $pluginFile !== null,
@@ -647,6 +655,14 @@ final class OnboardingController
         }
 
         return null;
+    }
+
+    private function canInstallRecommendedPlugin(array $plugin): bool
+    {
+        $source = $plugin['source'] ?? '';
+        $slug = $plugin['slug'] ?? '';
+
+        return $source === 'wporg' || $slug === 'livecanvas';
     }
 
     private function isPluginActive(string $pluginFile): bool
